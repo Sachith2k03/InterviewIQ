@@ -1,0 +1,23 @@
+fastapi==0.115.0
+uvicorn[standard]==0.30.6
+python-multipart==0.0.12
+pydantic==2.9.2
+pydantic-settings==2.5.2
+
+# Supabase
+supabase==2.5.1
+
+# Gemini SDK
+google-generativeai==0.8.0
+
+# Speech
+openai-whisper
+numpy==1.26.4
+
+# PDF + Resume
+reportlab==4.2.2
+pymupdf==1.24.10
+
+# Utils
+python-dotenv==1.0.1
+httpx==0.27.0
