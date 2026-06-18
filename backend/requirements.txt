@@ -1,23 +1,38 @@
+# FastAPI
 fastapi==0.115.0
 uvicorn[standard]==0.30.6
-python-multipart==0.0.12
+
+# Configuration & Validation
 pydantic==2.9.2
 pydantic-settings==2.5.2
-
-# Supabase
-supabase==2.5.1
-
-# Gemini SDK
-google-generativeai==0.8.0
-
-# Speech
-openai-whisper
-numpy==1.26.4
-
-# PDF + Resume
-reportlab==4.2.2
-pymupdf==1.24.10
-
-# Utils
 python-dotenv==1.0.1
+
+# Authentication & Security
+python-jose[cryptography]==3.3.0
+passlib[bcrypt]==1.7.4
+
+# File Uploads
+python-multipart==0.0.12
+
+# Database
+supabase==2.5.1
+websockets==14.2
+
+# AI
+google-generativeai==0.8.0
+openai-whisper
+
+# PDF Processing
+pymupdf==1.24.10
+reportlab==4.2.2
+
+# Utilities
+numpy==1.26.4
 httpx==0.27.0
+
+# Logging
+loguru==0.7.2
+
+# Testing
+pytest==8.3.2
+pytest-asyncio==0.24.0

@@ -5,11 +5,22 @@
 .DS_Store
 *.log
 *.log.*
+**/__pycache__/
+*.py[cod]
+
+
+.mypy_cache/
+.ruff_cache/
+.pyright/
+
+.coverage
+coverage.xml
+htmlcov/
+**/.DS_Store
 
 # Backend (Python)
 backend/venv/
-backend/__pycache__/
-backend/*.pyc
+.python-version
 backend/*.pyo
 backend/*.pyd
 backend/.Python
@@ -24,6 +35,10 @@ backend/.coverage
 backend/htmlcov/
 backend/instance/
 backend/.webassets-cache/
+backend/uploads/
+backend/temp/
+backend/tmp/
+backend/reports/
 
 # Frontend (Next.js)
 frontend/.next/
@@ -33,7 +48,6 @@ frontend/.env.local
 frontend/.env.development.local
 frontend/.env.test.local
 frontend/.env.production.local
-frontend/next-env.d.ts
 frontend/.vercel
 frontend/.turbo
 
