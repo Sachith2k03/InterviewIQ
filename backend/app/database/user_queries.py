@@ -54,6 +54,32 @@ def get_profile(user_id: str):
         raise
 
     except Exception as e:
+        message = str(e)
+
+        if "0 rows" in message.lower():
+            raise NotFoundException("Profile not found.")
+
+        raise DatabaseException(message)
+    """Get a user profile."""
+
+    try:
+        response = (
+            supabase.table("profiles")
+            .select("*")
+            .eq("id", user_id)
+            .single()
+            .execute()
+        )
+
+        if not response.data:
+            raise NotFoundException("Profile not found.")
+
+        return response.data
+
+    except InterviewIQException:
+        raise
+
+    except Exception as e:
         raise DatabaseException(str(e))
 
 

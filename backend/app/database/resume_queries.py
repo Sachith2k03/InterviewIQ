@@ -23,7 +23,7 @@ def create_resume(
                     "user_id": user_id,
                     "title": title,
                     "file_name": file_name,
-                    "file_path": file_path,
+                    "storage_path": file_path,
                     "parsed_text": parsed_text,
                 }
             )
