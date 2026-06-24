@@ -4,7 +4,7 @@ from app.exceptions.custom_exceptions import (
     InterviewIQException,
     NotFoundException,
 )
-
+from typing import cast
 
 def create_resume(
     user_id: str,
@@ -30,7 +30,13 @@ def create_resume(
             .execute()
         )
 
-        return response.data
+        if not response.data:
+            raise DatabaseException("Failed to create resume.")
+
+        return cast(
+            dict[str, object],
+            response.data[0],
+        )
 
     except InterviewIQException:
         raise
@@ -54,7 +60,10 @@ def get_resume(resume_id: str) -> dict[str, object]:
         if not response.data:
             raise NotFoundException("Resume not found.")
 
-        return response.data
+        return cast(
+            dict[str, object],
+            response.data
+        )
 
     except InterviewIQException:
         raise
@@ -75,7 +84,10 @@ def get_user_resumes(user_id: str) -> list[dict[str, object]]:
             .execute()
         )
 
-        return response.data
+        return cast(
+            list[dict[str, object]], 
+            response.data
+        )
 
     except InterviewIQException:
         raise
@@ -84,7 +96,7 @@ def get_user_resumes(user_id: str) -> list[dict[str, object]]:
         raise DatabaseException(str(e))
 
 
-def delete_resume(resume_id: str) -> dict[str, object]:
+def delete_resume(resume_id: str) -> None:
     """Delete a resume."""
 
     try:

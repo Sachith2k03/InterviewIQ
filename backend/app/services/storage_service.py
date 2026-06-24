@@ -1,7 +1,7 @@
 from uuid import uuid4
 
 from fastapi import UploadFile
-
+from pathlib import Path
 from app.database.client import supabase
 from app.exceptions.custom_exceptions import (
     DatabaseException,
@@ -28,7 +28,7 @@ class StorageService:
             if file.filename is None:
                 raise ValidationException("File name is missing.")
 
-            extension = file.filename.split(".")[-1]
+            extension = Path(file.filename).suffix.lstrip(".")
 
             file_name = f"{uuid4()}.{extension}"
 
@@ -37,7 +37,7 @@ class StorageService:
             file_bytes = await file.read()
 
             logger.info(
-                f"uploading file to bucket '{RESUME_BUCKET}'"
+                f"uploading resume for user_id={user_id}"
             )
 
             supabase.storage.from_(RESUME_BUCKET).upload(
@@ -49,7 +49,7 @@ class StorageService:
             )
 
             logger.info(
-                f"File uploaded successfully to bucket '{RESUME_BUCKET}': {storage_path}"
+                f"Resume uploaded successfully (user_id={user_id}, path={storage_path})"
             )
 
             return storage_path
@@ -58,13 +58,13 @@ class StorageService:
             raise
 
         except Exception as e:
-            logger.error(f"Storage upload failed: {str(e)}")
+            logger.exception(f"Storage upload failed.")
             raise DatabaseException("Failed to upload file to storage.")
 
         
     
     @staticmethod
-    def delete_resume(storage_path: str):
+    def delete_resume(storage_path: str) -> None:
         """Delete a resume from storage"""
 
         logger.info(
@@ -82,5 +82,5 @@ class StorageService:
             raise
 
         except Exception as e:
-            logger.error(f"Storage deletion failed: {str(e)}")
+            logger.exception(f"Storage deletion failed.")
             raise DatabaseException("Failed to delete file from storage.")

@@ -1,3 +1,5 @@
+from typing import cast
+
 from app.database.client import supabase
 from app.exceptions.custom_exceptions import (
     DatabaseException,
@@ -10,7 +12,7 @@ def create_profile(
     user_id: str,
     full_name: str | None = None,
     avatar_url: str | None = None,
-) -> dict:
+) -> dict[str, object]:
     """Create a new user profile."""
 
     try:
@@ -26,7 +28,10 @@ def create_profile(
             .execute()
         )
 
-        return response.data
+        return cast(
+            dict[str, object], 
+            response.data[0] 
+        )
 
     except InterviewIQException:
         raise
@@ -35,7 +40,7 @@ def create_profile(
         raise DatabaseException(str(e))
 
 
-def get_profile(user_id: str) -> dict:
+def get_profile(user_id: str) -> dict[str, object]:
     """Get a user profile."""
 
     try:
@@ -50,7 +55,10 @@ def get_profile(user_id: str) -> dict:
         if not response.data:
             raise NotFoundException("Profile not found.")
 
-        return response.data
+        return cast(
+            dict[str, object],
+            response.data
+        )
 
     except InterviewIQException:
         raise
@@ -62,12 +70,14 @@ def get_profile(user_id: str) -> dict:
             raise NotFoundException("Profile not found.")
 
         raise DatabaseException(message)
+    
+
 
 def update_profile(
     user_id: str,
     full_name: str | None = None,
     avatar_url: str | None = None,
-) -> dict:
+) -> dict[str, object]:
     """Update a user profile."""
 
     update_data = {}
@@ -78,15 +88,23 @@ def update_profile(
     if avatar_url is not None:
         update_data["avatar_url"] = avatar_url
 
+    if not update_data:
+        raise DatabaseException("No profile fields provided for update.")
+
     try:
         response = (
             supabase.table("profiles")
             .update(update_data)
             .eq("id", user_id)
+            .select()
+            .single()
             .execute()
         )
 
-        return response.data
+        return cast(
+            dict[str, object], 
+            response.data
+        )
 
     except InterviewIQException:
         raise

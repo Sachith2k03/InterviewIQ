@@ -1,4 +1,4 @@
-from pathlib import Path
+
 
 
 import fitz
@@ -21,29 +21,44 @@ class ResumeService:
         user_id:str,
         file: UploadFile,
         title: str,
-    ) -> dict:
+    ) -> dict[str, object]:
         """Upload a resume, extract text, and save metadata."""
 
         logger.info(
-            f" Resume upload started for user: {user_id}"
+            f"Resume upload started (user_id={user_id})"
         )
 
         await validate_resume(file)
 
         logger.info(
-            f"Resume validated: {file.filename}"
+            f"Resume validated (file={file.filename})"
         )
+
+
         storage_path = await StorageService.upload_resume(
             user_id=user_id,
             file=file,
         )
 
+
         logger.info(
-            f"Resume stored successfully at: {storage_path}"
+            f"Resume stored successfully (path={storage_path})"
         )
 
-        parsed_text = await ResumeService.extract_text(file)
-        
+
+
+        try:
+            parsed_text = await ResumeService.extract_text(file)
+
+        except Exception:
+            logger.exception(
+                f"Failed to extract text from resume: {file.filename}"
+            )
+
+            raise ValidationException("Unable to process the uploaded PDF.")
+
+
+
         if file.filename is None:
             raise ValidationException("File name is missing.")
         
@@ -62,9 +77,9 @@ class ResumeService:
         )
     
         logger.info(
-            f"Resume upload completed for user: {user_id}"
+            f"Resume upload completed (user_id={user_id})"
         )
-        return resume[0]
+        return resume
     
         
 
@@ -86,12 +101,15 @@ class ResumeService:
             stream=pdf_bytes,
             filetype="pdf"
         )
-    
-        text = "\n".join(
-            page.get_text()
-            for page in document
-        )
+        try:
+            text = "\n".join(
+                document.load_page(i).get_text()
+                for i in range(document.page_count)
+            )
+        finally:
+            document.close()
 
+            
         logger.info(
             f"Text extracted from resume: {file.filename}"
         )
