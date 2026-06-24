@@ -12,7 +12,7 @@ def create_resume(
     file_name: str,
     file_path: str,
     parsed_text: str | None = None,
-):
+) -> dict[str, object]:
     """Save a new resume."""
 
     try:
@@ -39,7 +39,7 @@ def create_resume(
         raise DatabaseException(str(e))
 
 
-def get_resume(resume_id: str):
+def get_resume(resume_id: str) -> dict[str, object]:
     """Get a resume."""
 
     try:
@@ -63,7 +63,7 @@ def get_resume(resume_id: str):
         raise DatabaseException(str(e))
 
 
-def get_user_resumes(user_id: str):
+def get_user_resumes(user_id: str) -> list[dict[str, object]]:
     """Get all resumes belonging to a user."""
 
     try:
@@ -84,7 +84,7 @@ def get_user_resumes(user_id: str):
         raise DatabaseException(str(e))
 
 
-def delete_resume(resume_id: str):
+def delete_resume(resume_id: str) -> dict[str, object]:
     """Delete a resume."""
 
     try:

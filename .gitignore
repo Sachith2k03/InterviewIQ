@@ -12,6 +12,8 @@
 .mypy_cache/
 .ruff_cache/
 .pyright/
+.pytest_cache/
+.pyproject.toml
 
 .coverage
 coverage.xml

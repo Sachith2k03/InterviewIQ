@@ -1,7 +1,7 @@
 from fastapi import UploadFile
 
 from app.core.constants import (
-    ALLOWED_RESUME_TYPES,
+    ALLOWED_RESUME_MIME_TYPES,
     MAX_RESUME_SIZE,
 )
 from app.exceptions.custom_exceptions import ValidationException
@@ -12,7 +12,7 @@ async def validate_resume(file: UploadFile):
     Validate uploaded resume.
     """
 
-    if file.content_type not in ALLOWED_RESUME_TYPES:
+    if file.content_type not in ALLOWED_RESUME_MIME_TYPES:
         raise ValidationException(
             "Only PDF resumes are allowed."
         )

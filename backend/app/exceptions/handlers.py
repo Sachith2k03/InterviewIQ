@@ -9,7 +9,9 @@ async def interview_iq_exception_handler(
         request: Request,
         exc: InterviewIQException,
 ):
-    logger.error(f"{exc.error_code}: {exc.message}")
+    logger.error(
+        f"[{exc.error_code}] {exc.message}"
+    )
 
     return JSONResponse(
         status_code=exc.status_code,

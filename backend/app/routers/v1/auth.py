@@ -6,6 +6,8 @@ from app.schemas.auth import (
     UserResponse,
 )
 from app.utils.helpers import success_response
+from app.core.constants import MSG_AUTH_SUCCESS
+
 
 router = APIRouter(
     prefix="/auth",
@@ -25,7 +27,7 @@ async def get_me(
     """
 
     return success_response(
-        message="Authenticated user retrieved successfully.",
+        message=MSG_AUTH_SUCCESS,
         data=UserResponse(
             id=str(current_user.id),
             email=current_user.email,

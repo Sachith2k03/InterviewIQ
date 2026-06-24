@@ -6,11 +6,11 @@ from app.database.client import supabase
 from app.exceptions.custom_exceptions import (
     DatabaseException,
     InterviewIQException,
+    ValidationException,
 )
 
 from app.core.constants import RESUME_BUCKET
-
-
+from app.core.logging import logger
 
 
 class StorageService:
@@ -25,13 +25,20 @@ class StorageService:
         """Uploads a resume to supabase Storage and Returns the storage path of the uploaded file."""
 
         try:
-            extention = file.filename.split(".")[-1]
+            if file.filename is None:
+                raise ValidationException("File name is missing.")
 
-            file_name = f"{uuid4()}.{extention}"
+            extension = file.filename.split(".")[-1]
+
+            file_name = f"{uuid4()}.{extension}"
 
             storage_path = f"{user_id}/{file_name}"
 
             file_bytes = await file.read()
+
+            logger.info(
+                f"uploading file to bucket '{RESUME_BUCKET}'"
+            )
 
             supabase.storage.from_(RESUME_BUCKET).upload(
                 path = storage_path,
@@ -41,26 +48,39 @@ class StorageService:
                 },
             )
 
+            logger.info(
+                f"File uploaded successfully to bucket '{RESUME_BUCKET}': {storage_path}"
+            )
+
             return storage_path
         
         except InterviewIQException:
             raise
 
         except Exception as e:
-            raise DatabaseException(str(e))
+            logger.error(f"Storage upload failed: {str(e)}")
+            raise DatabaseException("Failed to upload file to storage.")
+
         
     
     @staticmethod
     def delete_resume(storage_path: str):
         """Delete a resume from storage"""
 
+        logger.info(
+            f"Deleting file from bucket '{RESUME_BUCKET}' at path '{storage_path}'"
+        )
         try:
             supabase.storage.from_(RESUME_BUCKET).remove(
                 [storage_path]
+            )
+            logger.info(
+                f"File deleted successfully from bucket '{RESUME_BUCKET}': {storage_path}"
             )
         
         except InterviewIQException:
             raise
 
         except Exception as e:
-            raise DatabaseException(str(e))
+            logger.error(f"Storage deletion failed: {str(e)}")
+            raise DatabaseException("Failed to delete file from storage.")

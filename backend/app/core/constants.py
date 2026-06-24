@@ -1,42 +1,45 @@
-#Application-wide constants
+"""
+Application constants.
+"""
 
-#API
+
+# API
 API_V1_PREFIX = "/api/v1"
 
-
-
-#Application
-APP_DESCRIPTION = (
-    "InterviewIQ is an AI-powered mock interview platform "
-    "that analyzes resumes, conducts interviews, and "
-    "generates detailed feedback reports."
-)
-
-
-
-#Storage Buckets
+# Storage Buckets
 RESUME_BUCKET = "resumes"
-AUDIO_BUCKET = "interview-audio"
 REPORT_BUCKET = "reports"
 
-
-#Supported File Types
-ALLOWED_RESUME_TYPES = {
+# File Upload
+ALLOWED_RESUME_MIME_TYPES = [
     "application/pdf",
-}
+]
 
-MAX_RESUME_SIZE = 5 * 1024 * 1024  # 5 MB 
+MAX_RESUME_SIZE = 5 * 1024 * 1024  # 5 MB
 
+# Authentication
+BEARER_PREFIX = "Bearer "
 
-
-#AI Models
-GEMINI_MODEL = "gemini-2.5-flash"
-WHISPER_MODEL = "base"
-
-
-
-#LIMITS
-MAX_AUDIO_SIZE_MB = 25
-MAX_INTERVIEW_QUESTIONS = 10
+# Interview Defaults
+DEFAULT_QUESTION_COUNT = 10
 
 
+# Success Messages
+MSG_RESUME_UPLOADED = "Resume uploaded successfully."
+MSG_PROFILE_CREATED = "Profile created successfully."
+MSG_AUTH_SUCCESS = "Authenticated user retrieved successfully."
+MSG_INTERVIEW_CREATED = "Interview created successfully."
+MSG_REPORT_GENERATED = "Report generated successfully."
+
+
+
+
+# Interview Statuses
+from enum import StrEnum
+
+class InterviewStatus(StrEnum):
+    CREATED = "CREATED"
+    READY = "READY"
+    IN_PROGRESS = "IN_PROGRESS"
+    EVALUATING = "EVALUATING"
+    COMPLETED = "COMPLETED"

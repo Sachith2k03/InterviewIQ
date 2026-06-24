@@ -1,9 +1,9 @@
 from fastapi import APIRouter, File, Form, UploadFile, Depends
 
-from app.schemas.resume import ResumeUploadResponse
 from app.services.resume_service import ResumeService
 from app.utils.helpers import success_response
 from app.dependencies import get_current_user
+from app.core.constants import MSG_RESUME_UPLOADED
 
 router = APIRouter(
     prefix="/upload",
@@ -30,6 +30,6 @@ async def upload_resume(
     )
 
     return success_response(
-        message="Resume uploaded successfully",
+        message=MSG_RESUME_UPLOADED,
         data=resume,
     )
