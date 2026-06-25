@@ -86,3 +86,4 @@ class StorageService:
         except Exception as e:
             logger.exception(f"Storage deletion failed.")
             raise DatabaseException("Failed to delete file from storage.")
+
