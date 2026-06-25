@@ -11,6 +11,7 @@ from app.exceptions.custom_exceptions import (
 
 from app.core.constants import RESUME_BUCKET
 from app.core.logging import logger
+from typing import cast
 
 
 class StorageService:
@@ -43,10 +44,11 @@ class StorageService:
             supabase.storage.from_(RESUME_BUCKET).upload(
                 path = storage_path,
                 file = file_bytes,
-                file_options = {
+                file_options ={ # type: ignore[arg-type]
                     "content_type": file.content_type,
-                },
-            )
+                    },
+                ), 
+            
 
             logger.info(
                 f"Resume uploaded successfully (user_id={user_id}, path={storage_path})"

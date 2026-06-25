@@ -96,15 +96,10 @@ def update_profile(
             supabase.table("profiles")
             .update(update_data)
             .eq("id", user_id)
-            .select()
-            .single()
             .execute()
         )
 
-        return cast(
-            dict[str, object], 
-            response.data
-        )
+        return get_profile(user_id)
 
     except InterviewIQException:
         raise

@@ -114,6 +114,4 @@ class ResumeService:
             f"Text extracted from resume: {file.filename}"
         )
 
-        document.close()
-
         return text

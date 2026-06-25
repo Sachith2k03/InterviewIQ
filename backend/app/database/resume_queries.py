@@ -107,7 +107,6 @@ def delete_resume(resume_id: str) -> None:
             .execute()
         )
 
-        return response.data
 
     except InterviewIQException:
         raise
