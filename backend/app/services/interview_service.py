@@ -126,7 +126,7 @@ class InterviewService:
                 f"Interview fetched successfully: {interview_id}"
             )
 
-            return InterviewResponse(**interview)
+            return interview
 
         except InterviewIQException:
             raise
