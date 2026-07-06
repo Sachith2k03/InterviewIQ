@@ -24,6 +24,8 @@ from app.schemas.interview import InterviewResponse
 class InterviewService:
     """Handles interview business logic."""
 
+
+
 # created for internal use -> not exposed as an API.This method is used to validate ownership of an interview before performing any operations.)
     @staticmethod
     def _get_owned_interview(
@@ -74,7 +76,12 @@ class InterviewService:
 
         try:
             if resume_id is not None:
-                get_resume(resume_id)
+                resume = get_resume(resume_id)
+
+                if resume["user_id"] != user_id:
+                    raise UnauthorizedException(
+                        "You do not have permission to use this resume."
+                    )
 
             interview = db_create_interview(
                 user_id=user_id,
@@ -110,13 +117,11 @@ class InterviewService:
         )
 
         try:
-            InterviewService._get_owned_interview(
+            interview = InterviewService._get_owned_interview(
                 interview_id,
                 user_id,
             )
-
-            interview = db_get_interview(interview_id)
-
+ 
             logger.info(
                 f"Interview fetched successfully: {interview_id}"
             )
@@ -279,7 +284,10 @@ class InterviewService:
 
         try:
             
-
+            InterviewService._get_owned_interview(
+                interview_id,
+                user_id,
+            )
             db_delete_interview(interview_id)
 
             logger.info(

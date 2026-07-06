@@ -115,3 +115,4 @@ class ResumeService:
         )
 
         return text
+    

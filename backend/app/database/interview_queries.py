@@ -283,7 +283,7 @@ def update_response_analysis(
             f"AI analysis updated successfully: {response_id}"
         )
 
-        data = cast(dict[str, Any], response.data)
+        data = cast(dict[str, Any], response.data[0])
         logger.info(f"AI analysis updated successfully: {response_id}")
         return data
 

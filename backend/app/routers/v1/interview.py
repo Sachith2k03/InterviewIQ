@@ -18,6 +18,7 @@ router = APIRouter(
 # Create an interview api
 @router.post(
     "/create",
+    response_model=InterviewDetailResponse,
     status_code=status.HTTP_201_CREATED,
 )
 async def create_interview(
