@@ -4,8 +4,9 @@ from contextlib import asynccontextmanager
 from app.core.config import settings
 from app.core.logging import logger
 from app.routers.v1 import api_router
-from app.routers.v1.upload import router as upload_router
 from app.routers.v1.auth import router as auth_router
+from app.routers.v1.upload import router as upload_router
+from app.routers.v1.interview import router as interview_router
 from app.core.constants import API_V1_PREFIX
 from app.exceptions.handlers import register_exception_handlers
 
@@ -37,7 +38,7 @@ async def root():
 
 app.include_router(auth_router)
 app.include_router(upload_router)
-
+app.include_router(interview_router)
 
 app.include_router(
     api_router,

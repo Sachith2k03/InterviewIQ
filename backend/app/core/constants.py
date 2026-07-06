@@ -34,12 +34,3 @@ MSG_REPORT_GENERATED = "Report generated successfully."
 
 
 
-# Interview Statuses
-from enum import StrEnum
-
-class InterviewStatus(StrEnum):
-    CREATED = "CREATED"
-    READY = "READY"
-    IN_PROGRESS = "IN_PROGRESS"
-    EVALUATING = "EVALUATING"
-    COMPLETED = "COMPLETED"
