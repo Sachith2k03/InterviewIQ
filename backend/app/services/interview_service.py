@@ -26,7 +26,7 @@ class InterviewService:
 
 
 
-# created for internal use -> not exposed as an API.This method is used to validate ownership of an interview before performing any operations.)
+    # created for internal use -> not exposed as an API.This method is used to validate ownership of an interview before performing any operations.)
     @staticmethod
     def _get_owned_interview(
         interview_id: str,
@@ -56,7 +56,7 @@ class InterviewService:
         except InterviewIQException:
             raise
 
-# Create an interview
+    # Create an interview
     @staticmethod
     def create_interview(
         user_id: str,
@@ -102,7 +102,7 @@ class InterviewService:
             raise
 
 
-# Get an interview
+    # Get an interview
     @staticmethod
     def get_interview(
         interview_id: str,
@@ -132,7 +132,7 @@ class InterviewService:
             raise
 
 
-# List of user interviews
+    # List of user interviews
     @staticmethod
     def list_user_interviews(
         user_id: str,
@@ -161,7 +161,7 @@ class InterviewService:
             raise
 
 
-# Start an interview
+    # Start an interview
     @staticmethod
     def start_interview(
         interview_id: str,
@@ -197,7 +197,7 @@ class InterviewService:
             raise
 
 
-# Complete an interview
+    # Complete an interview
     @staticmethod
     def complete_interview(
         interview_id: str,
@@ -233,7 +233,7 @@ class InterviewService:
             raise
 
 
-# Cancel an interview
+    # Cancel an interview
     @staticmethod
     def cancel_interview(
         interview_id: str,
@@ -268,7 +268,7 @@ class InterviewService:
             raise
 
 
-# Delete an interview
+    # Delete an interview
     @staticmethod
     def delete_interview(
         interview_id: str,
