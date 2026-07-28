@@ -25,11 +25,30 @@ class AudioStorageService:
         """upload interview audio and return its storage path."""
 
         try:
+            from app.core.constants import (
+                ALLOWED_AUDIO_MIME_TYPES,
+                MAX_AUDIO_SIZE,
+            )
+
             if file.filename is None:
                 raise ValidationException(
                     "File name is missing."
                 )
-            
+
+            if file.content_type not in ALLOWED_AUDIO_MIME_TYPES:
+                raise ValidationException(
+                    "Unsupported audio content type."
+                )
+
+            file.file.seek(0, 2)
+            file_size = file.file.tell()
+            file.file.seek(0)
+
+            if file_size > MAX_AUDIO_SIZE:
+                raise ValidationException(
+                    "Audio size cannot exceed 50 MB."
+                )
+
             storage_path = (
                 f"{user_id}/"
                 f"{interview_id}/"
