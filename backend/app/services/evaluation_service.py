@@ -58,7 +58,7 @@ Return ONLY a JSON object with the following structure:
     "confidence_score": 0,
     "fluency_score": 0,
     "overall_score": 0,
-    "feedback": ""
+    "question_feedback": ""
 }}
 
 Do not return markdown, explanations, or any text outside the JSON object. The feedback should be concise and constructive, highlighting strengths and areas for improvement.
