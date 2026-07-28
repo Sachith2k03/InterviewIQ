@@ -39,10 +39,13 @@ def create_response(
             .execute()
         )
 
+        if not response.data:
+            raise DatabaseException("Failed to create response.")
+
         data = cast(list[dict[str, Any]], response.data)
 
         logger.info(
-            f"Response created succesfully: {data[0]['id']}"
+            f"Response created successfully: {data[0]['id']}"
         )
 
         return data[0]
