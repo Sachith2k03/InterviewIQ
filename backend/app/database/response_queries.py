@@ -1,0 +1,237 @@
+from typing import Any, cast
+
+from app.core.logging import logger
+from app.database.client import supabase
+from app.exceptions.custom_exceptions import (
+    DatabaseException,
+    InterviewIQException,
+    NotFoundException,
+)
+
+
+def create_response(
+        interview_id: str,
+        question_number: int,
+        question: str,
+        audio_path: str | None = None,
+        transcript: str | None = None,
+        answer_duration_seconds: int | None = None,
+) -> dict[str, Any]:
+    """Create a new interview response."""
+
+    logger.info(
+        f"Creating response for interview: {interview_id}, question: {question_number}"
+    )
+
+    try:
+        response = (
+            supabase.table("interview_responses")
+            .insert(
+                {
+                    "interview_id": interview_id,
+                    "question_number": question_number,
+                    "question": question,
+                    "audio_path": audio_path,
+                    "transcript": transcript,
+                    "answer_duration_seconds": answer_duration_seconds,
+                }
+            )
+            .execute()
+        )
+
+        data = cast(list[dict[str, Any]], response.data)
+
+        logger.info(
+            f"Response created succesfully: {data[0]['id']}"
+        )
+
+        return data[0]
+    
+    except InterviewIQException:
+        raise
+
+    except Exception as e:
+        raise DatabaseException(str(e))
+    
+
+def get_response(
+    response_id: str,
+) -> dict[str, Any]:
+    """Get an interview response."""
+
+    logger.info(
+        f"Fetching response: {response_id}"
+    )
+
+    try:
+        response = (
+            supabase.table("interview_responses")
+            .select("*")
+            .eq("id", response_id)
+            .single()
+            .execute()
+        )
+
+        data = cast(dict[str, Any], response.data)
+
+        if not data:
+            raise NotFoundException(
+                "Response not found."
+            )
+
+        logger.info(
+            f"Response fetched successfully: {response_id}"
+        )
+
+        return data
+
+    except InterviewIQException:
+        raise
+
+    except Exception as e:
+        raise DatabaseException(str(e))
+    
+
+def get_interview_responses(
+    interview_id: str,
+) -> list[dict[str, Any]]:
+    """Get all responses for an interview."""
+
+    logger.info(
+        f"Fetching responses for interview: {interview_id}"
+    )
+
+    try:
+        response = (
+            supabase.table("interview_responses")
+            .select("*")
+            .eq("interview_id", interview_id)
+            .order("question_number")
+            .execute()
+        )
+
+        data = cast(list[dict[str, Any]], response.data)
+
+        logger.info(
+            f"Fetched {len(data)} responses."
+        )
+
+        return data
+
+    except InterviewIQException:
+        raise
+
+    except Exception as e:
+        raise DatabaseException(str(e))
+    
+
+def update_transcript(
+    response_id: str,
+    transcript: str,
+) -> dict[str, Any]:
+    """Update response transcript."""
+
+    logger.info(
+        f"Updating transcript for response: {response_id}"
+    )
+
+    try:
+        response = (
+            supabase.table("interview_responses")
+            .update(
+                {
+                    "transcript": transcript,
+                }
+            )
+            .eq("id", response_id)
+            .execute()
+        )
+
+        data = cast(list[dict[str, Any]], response.data)
+
+        logger.info(
+            f"Transcript updated successfully: {response_id}"
+        )
+
+        return data[0]
+
+    except InterviewIQException:
+        raise
+
+    except Exception as e:
+        raise DatabaseException(str(e))
+    
+
+def update_analysis(
+    response_id: str,
+    technical_score: float,
+    communication_score: float,
+    confidence_score: float,
+    fluency_score: float,
+    overall_score: float,
+    question_feedback: str,
+) -> dict[str, Any]:
+    """Update AI analysis for a response."""
+
+    logger.info(
+        f"Updating AI analysis: {response_id}"
+    )
+
+    try:
+        response = (
+            supabase.table("interview_responses")
+            .update(
+                {
+                    "technical_score": technical_score,
+                    "communication_score": communication_score,
+                    "confidence_score": confidence_score,
+                    "fluency_score": fluency_score,
+                    "overall_score": overall_score,
+                    "question_feedback": question_feedback,
+                }
+            )
+            .eq("id", response_id)
+            .execute()
+        )
+
+        data = cast(list[dict[str, Any]], response.data)
+
+        logger.info(
+            f"AI analysis updated successfully: {response_id}"
+        )
+
+        return data[0]
+
+    except InterviewIQException:
+        raise
+
+    except Exception as e:
+        raise DatabaseException(str(e))
+
+
+def delete_response(
+    response_id: str,
+) -> None:
+    """Delete a response."""
+
+    logger.info(
+        f"Deleting response: {response_id}"
+    )
+
+    try:
+        (
+            supabase.table("interview_responses")
+            .delete()
+            .eq("id", response_id)
+            .execute()
+        )
+
+        logger.info(
+            f"Response deleted successfully: {response_id}"
+        )
+
+    except InterviewIQException:
+        raise
+
+    except Exception as e:
+        raise DatabaseException(str(e))

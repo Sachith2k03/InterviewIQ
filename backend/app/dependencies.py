@@ -23,3 +23,4 @@ async def get_current_user(
 
     # credentials.credentials already contains only the JWT token.
     return AuthService.get_current_user(credentials.credentials)
+
