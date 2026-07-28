@@ -23,6 +23,8 @@ class TranscriptionService:
 
         logger.info("Starting audio transcription.")
 
+        temp_audio_file_path: str | None = None
+
         try:
             with tempfile.NamedTemporaryFile(
                 delete=False, 
