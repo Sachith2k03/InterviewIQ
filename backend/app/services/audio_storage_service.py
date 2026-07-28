@@ -69,7 +69,7 @@ class AudioStorageService:
             ).upload(
                 path=storage_path,
                 file=file_bytes,
-                file_options = { #type: ignore [arg-type]
+                file_options={  # type: ignore[arg-type]
                     "content_type": file.content_type,
                 },
             )
