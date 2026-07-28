@@ -21,7 +21,9 @@ MAX_RESUME_SIZE = 5 * 1024 * 1024  # 5 MB
 # Audio Upload
 ALLOWED_AUDIO_MIME_TYPES = [
     "audio/wav",
-    "audio/mp3",
+    "audio/mpeg",
+    "audio/webm",
+    "video/webm",
 ]
 MAX_AUDIO_SIZE = 50 * 1024 * 1024  # 50 MB
 
