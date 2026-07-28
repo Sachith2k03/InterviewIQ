@@ -9,6 +9,7 @@ API_V1_PREFIX = "/api/v1"
 # Storage Buckets
 RESUME_BUCKET = "resumes"
 REPORT_BUCKET = "reports"
+AUDIO_BUCKET = "audio"
 
 # File Upload
 ALLOWED_RESUME_MIME_TYPES = [
@@ -16,6 +17,15 @@ ALLOWED_RESUME_MIME_TYPES = [
 ]
 
 MAX_RESUME_SIZE = 5 * 1024 * 1024  # 5 MB
+
+# Audio Upload
+ALLOWED_AUDIO_MIME_TYPES = [
+    "audio/wav",
+    "audio/mpeg",
+    "audio/webm",
+    "video/webm",
+]
+MAX_AUDIO_SIZE = 50 * 1024 * 1024  # 50 MB
 
 # Authentication
 BEARER_PREFIX = "Bearer "
