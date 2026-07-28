@@ -12,7 +12,7 @@ class ResponseBase(BaseModel):
         ge=1,
     )
 
-    question : str = Field(
+    question: str = Field(
         min_length=1,
     )
 
