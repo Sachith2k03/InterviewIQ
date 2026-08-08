@@ -1,6 +1,6 @@
 from uuid import UUID
 
-from fastapi import APIRouter, Depends, status
+from fastapi import APIRouter, Depends, status, Query
 
 from app.dependencies import get_current_user
 from app.schemas.interview import (
@@ -27,9 +27,7 @@ async def create_interview(
 ):
     interview = InterviewService.create_interview(
         user_id=str(user.id),
-        resume_id=str(request.resume_id)
-        if request.resume_id
-        else None,
+        resume_id=str(request.resume_id),
         job_role=request.job_role,
         interview_type=request.interview_type,
         difficulty=request.difficulty,
@@ -62,23 +60,36 @@ async def get_interview(
         "data": interview,
     }
 
-
+# Get all interviews api
 @router.get(
     "",
     response_model=InterviewListResponse,
 )
 async def list_interviews(
+    page: int = Query(
+        default=1,
+        ge=1,
+    ),
+    page_size: int = Query(
+        default=10,
+        ge=1,
+        le=50,
+    ),
     user=Depends(get_current_user),
 ):
-    interviews = InterviewService.list_user_interviews(
+    result = InterviewService.list_user_interviews(
         user_id=str(user.id),
+        page=page,
+        page_size=page_size,
     )
 
     return {
         "success": True,
         "message": "Interviews retrieved successfully.",
-        "data": interviews,
+        "data": result["items"],
+        "pagination": result["pagination"],
     }
+
 
 
 @router.patch(

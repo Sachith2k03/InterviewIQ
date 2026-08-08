@@ -1,7 +1,10 @@
+from pathlib import Path
 from uuid import uuid4
 
 from fastapi import UploadFile
-from pathlib import Path
+
+from app.core.constants import RESUME_BUCKET
+from app.core.logging import logger
 from app.database.client import supabase
 from app.exceptions.custom_exceptions import (
     DatabaseException,
@@ -9,81 +12,128 @@ from app.exceptions.custom_exceptions import (
     ValidationException,
 )
 
-from app.core.constants import RESUME_BUCKET
-from app.core.logging import logger
-from typing import cast
-
 
 class StorageService:
-    """ Handles file uploads and deletions in Supabase Storage."""
-
+    """Handle file uploads and deletions in Supabase Storage."""
 
     @staticmethod
     async def upload_resume(
         user_id: str,
         file: UploadFile,
     ) -> str:
-        """Uploads a resume to supabase Storage and Returns the storage path of the uploaded file."""
+        """Upload a resume and return its Supabase Storage path."""
 
         try:
-            if file.filename is None:
-                raise ValidationException("File name is missing.")
+            if not file.filename:
+                raise ValidationException(
+                    "File name is missing."
+                )
 
-            extension = Path(file.filename).suffix.lstrip(".")
-
-            file_name = f"{uuid4()}.{extension}"
-
-            storage_path = f"{user_id}/{file_name}"
-
-            file_bytes = await file.read()
-
-            logger.info(
-                f"uploading resume for user_id={user_id}"
+            extension = (
+                Path(file.filename)
+                .suffix
+                .lower()
+                .lstrip(".")
             )
 
-            supabase.storage.from_(RESUME_BUCKET).upload(
-                path = storage_path,
-                file = file_bytes,
-                file_options ={ # type: ignore[arg-type]
-                    "content_type": file.content_type,
-                    },
-                ), 
-            
+            if not extension:
+                raise ValidationException(
+                    "The uploaded file has no extension."
+                )
+
+            generated_file_name = (
+                f"{uuid4()}.{extension}"
+            )
+
+            storage_path = (
+                f"{user_id}/{generated_file_name}"
+            )
+
+            # Ensure reading starts from the beginning.
+            await file.seek(0)
+            file_bytes = await file.read()
+
+            if not file_bytes:
+                raise ValidationException(
+                    "The uploaded file is empty."
+                )
 
             logger.info(
-                f"Resume uploaded successfully (user_id={user_id}, path={storage_path})"
+                "Uploading resume "
+                f"(user_id={user_id}, path={storage_path})"
+            )
+
+            supabase.storage.from_(
+                RESUME_BUCKET
+            ).upload(
+                path=storage_path,
+                file=file_bytes,
+                file_options={  # type: ignore[arg-type]
+                    "content-type": (
+                        file.content_type
+                        or "application/pdf"
+                    ),
+                    "upsert": "false",
+                },
+            )
+
+            logger.info(
+                "Resume uploaded successfully "
+                f"(user_id={user_id}, path={storage_path})"
             )
 
             return storage_path
-        
+
         except InterviewIQException:
             raise
 
-        except Exception as e:
-            logger.exception(f"Storage upload failed.")
-            raise DatabaseException("Failed to upload file to storage.")
+        except Exception as error:
+            logger.exception(
+                "Storage upload failed "
+                f"(user_id={user_id})"
+            )
 
-        
-    
+            raise DatabaseException(
+                "Failed to upload file to storage."
+            ) from error
+
     @staticmethod
-    def delete_resume(storage_path: str) -> None:
-        """Delete a resume from storage"""
+    def delete_resume(
+        storage_path: str,
+    ) -> None:
+        """Delete a resume from Supabase Storage."""
+
+        if not storage_path:
+            raise ValidationException(
+                "Storage path is missing."
+            )
 
         logger.info(
-            f"Deleting file from bucket '{RESUME_BUCKET}' at path '{storage_path}'"
+            "Deleting resume from storage "
+            f"(bucket={RESUME_BUCKET}, path={storage_path})"
         )
+
         try:
-            supabase.storage.from_(RESUME_BUCKET).remove(
+            supabase.storage.from_(
+                RESUME_BUCKET
+            ).remove(
                 [storage_path]
             )
+
             logger.info(
-                f"File deleted successfully from bucket '{RESUME_BUCKET}': {storage_path}"
+                "Resume deleted successfully from storage "
+                f"(bucket={RESUME_BUCKET}, path={storage_path})"
             )
-        
+
         except InterviewIQException:
             raise
 
-        except Exception as e:
-            logger.exception(f"Storage deletion failed.")
-            raise DatabaseException("Failed to delete file from storage.")
+        except Exception as error:
+            logger.exception(
+                "Storage deletion failed "
+                f"(bucket={RESUME_BUCKET}, path={storage_path})"
+            )
 
+            raise DatabaseException(
+                "Failed to delete file from storage."
+            ) from error

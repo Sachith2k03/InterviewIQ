@@ -10,18 +10,25 @@ import {
   YAxis,
 } from "recharts";
 
-const performanceData = [
-  { date: "Jul 01", score: 28 },
-  { date: "Jul 05", score: 38 },
-  { date: "Jul 09", score: 55 },
-  { date: "Jul 13", score: 44 },
-  { date: "Jul 17", score: 68 },
-  { date: "Jul 21", score: 57 },
-  { date: "Jul 25", score: 74 },
-  { date: "Jul 29", score: 61 },
-];
+import type {
+  DashboardPerformancePoint,
+} from "@/lib/api/dashboard";
 
-export default function PerformanceChart() {
+interface PerformanceChartProps {
+  data: DashboardPerformancePoint[];
+}
+
+
+export default function PerformanceChart({
+  data,
+}: PerformanceChartProps) {
+  const formattedData = data.map((point) => ({
+    date: new Intl.DateTimeFormat("en-US", {
+      month: "short",
+      day: "numeric",
+    }).format(new Date(point.date)),
+    score: point.score,
+  }));
   return (
     <section className="rounded-xl border border-white/10 bg-[#101a2e] p-4 sm:p-5">
       <div className="mb-6 flex items-center justify-between gap-4">
@@ -49,7 +56,7 @@ export default function PerformanceChart() {
       <div className="h-72 w-full">
         <ResponsiveContainer width="100%" height="100%">
           <LineChart
-            data={performanceData}
+            data={formattedData}
             margin={{
               top: 10,
               right: 10,

@@ -53,7 +53,7 @@ export default function GreetingCard() {
 
         <div className="flex flex-col gap-3 sm:flex-row">
           <Link
-            href="/interviews/new"
+            href="/interviews/create"
             className="inline-flex h-10 items-center justify-center gap-2 rounded-lg bg-blue-600 px-4 text-sm font-medium text-white transition hover:bg-blue-500"
           >
             Start New Interview

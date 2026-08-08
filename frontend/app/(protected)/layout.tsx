@@ -27,7 +27,7 @@ export default function ProtectedLayout({
 
   return (
     <ProfileProvider>
-      <div className="flex min-h-screen bg-[#020617] text-white">
+      <div className="flex h-screen overflow-hidden bg-[#020617] text-white">
         <Sidebar
           isMobileOpen={isMobileSidebarOpen}
           setIsMobileOpen={setIsMobileSidebarOpen}
@@ -35,13 +35,13 @@ export default function ProtectedLayout({
           onDesktopToggle={handleDesktopSidebarToggle}
         />
 
-        <div className="flex min-w-0 flex-1 flex-col">
+        <div className="flex min-w-0 flex-1 flex-col overflow-hidden">
           <Topbar
             onMobileMenuClick={handleMobileMenuClick}
             isMobileSidebarOpen={isMobileSidebarOpen}
           />
 
-          <main className="flex-1 p-4 md:p-6">
+          <main className="min-h-0 flex-1 overflow-y-auto p-4 md:p-6">
             {children}
           </main>
         </div>

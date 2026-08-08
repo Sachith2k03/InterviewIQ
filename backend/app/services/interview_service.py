@@ -1,4 +1,5 @@
 from datetime import datetime, timezone
+from typing import Any, cast
 
 from app.core.enums import (
     InterviewDifficulty,
@@ -18,8 +19,12 @@ from app.exceptions.custom_exceptions import (
     InterviewIQException,
     UnauthorizedException,
 )
-from app.schemas.interview import InterviewResponse
+from app.schemas.interview import (
+    InterviewResponse,
+    InterviewHistoryItem
+)
 
+from math import ceil
 
 class InterviewService:
     """Handles interview business logic."""
@@ -64,7 +69,7 @@ class InterviewService:
         interview_type: InterviewType,
         difficulty: InterviewDifficulty,
         question_count: int,
-        resume_id: str | None = None,
+        resume_id: str,
     ) -> InterviewResponse:
         """
         Create a new interview.
@@ -75,13 +80,12 @@ class InterviewService:
         )
 
         try:
-            if resume_id is not None:
-                resume = get_resume(resume_id)
+            resume = get_resume(resume_id)
 
-                if resume["user_id"] != user_id:
-                    raise UnauthorizedException(
-                        "You do not have permission to use this resume."
-                    )
+            if resume["user_id"] != user_id:
+                raise UnauthorizedException(
+                    "You do not have permission to use this resume."
+                )
 
             interview = db_create_interview(
                 user_id=user_id,
@@ -136,30 +140,58 @@ class InterviewService:
     @staticmethod
     def list_user_interviews(
         user_id: str,
-    ) -> list[InterviewResponse]:
-        """
-        Get all interviews for a user.
-        """
+        page: int = 1,
+        page_size: int = 10,
+    ) -> dict[str, object]:
+        """Get paginated interviews for a user."""
 
         logger.info(
-            f"Fetching interviews for user: {user_id}"
+            f"Fetching interviews for user: {user_id}, "
+            f"page: {page}, page_size: {page_size}"
         )
 
         try:
-            interviews = db_get_user_interviews(user_id)
-
-            logger.info(
-                f"{len(interviews)} interviews fetched for user: {user_id}"
+            result = db_get_user_interviews(
+                user_id=user_id,
+                page=page,
+                page_size=page_size,
             )
 
-            return [
-                InterviewResponse(**interview)
-                for interview in interviews
+            raw_interviews = cast(
+                list[dict[str, Any]],
+                result["items"],
+            )
+
+            total_items = cast(
+                int,
+                result["total_items"],
+            )
+
+            interviews = [
+                InterviewHistoryItem(**interview)
+                for interview in raw_interviews
             ]
+
+            total_pages = (
+                ceil(total_items / page_size)
+                if total_items > 0
+                else 0
+            )
+
+            return {
+                "items": interviews,
+                "pagination": {
+                    "page": page,
+                    "page_size": page_size,
+                    "total_items": total_items,
+                    "total_pages": total_pages,
+                    "has_next": page < total_pages,
+                    "has_previous": page > 1,
+                },
+            }
 
         except InterviewIQException:
             raise
-
 
     # Start an interview
     @staticmethod

@@ -228,7 +228,7 @@ export default function Sidebar({
             type="button"
             onClick={handleLogout}
             title={isDesktopCollapsed ? "Logout" : undefined}
-            className={`flex h-10 w-full items-center rounded-lg border border-red-500/30 text-sm font-medium text-red-400 transition-all hover:border-red-500/50 hover:bg-red-500/10 hover:text-red-300 ${
+            className={`flex h-10 w-full items-center justify-center rounded-lg border border-red-500/30 text-sm font-medium text-red-400 transition-all hover:border-red-500/50 hover:bg-red-500/10 hover:text-red-300 ${
               isDesktopCollapsed
                 ? "gap-3 px-3 lg:justify-center lg:px-0"
                 : "gap-3 px-3"

@@ -13,6 +13,7 @@ from app.exceptions.custom_exceptions import (
     NotFoundException,
 )
 from typing import Any, cast
+from postgrest.types import CountMethod
 
 
 def create_interview(
@@ -95,30 +96,58 @@ def get_interview(
 
 def get_user_interviews(
     user_id: str,
-) -> list[dict[str, object]]:
-    """Get all interviews belonging to a user."""
+    page: int = 1,
+    page_size: int = 10,
+) -> dict[str, object]:
+    """Get paginated interview history belonging to a user."""
 
-    logger.info(f"Fetching interviews for user: {user_id}")
+    logger.info(
+        f"Fetching interviews for user: {user_id}, "
+        f"page: {page}, page_size: {page_size}"
+    )
 
     try:
+        start = (page - 1) * page_size
+        end = start + page_size - 1
+
         response = (
-            supabase.table("interviews")
-            .select("*")
+            supabase
+            .table("interview_history_view")
+            .select("*", count=CountMethod.exact)
             .eq("user_id", user_id)
             .order("created_at", desc=True)
+            .range(start, end)
             .execute()
         )
 
-        data = cast(list[dict[str, Any]], response.data)
-        logger.info(f"{len(data)} interviews fetched successfully for user: {user_id}")
-        return data
+        interviews = cast(
+            list[dict[str, Any]],
+            response.data or [],
+        )
+
+        total_items = response.count or 0
+
+        logger.info(
+            f"{len(interviews)} interviews fetched successfully "
+            f"for user: {user_id}. Total interviews: {total_items}"
+        )
+
+        return {
+            "items": interviews,
+            "total_items": total_items,
+        }
 
     except InterviewIQException:
         raise
 
-    except Exception as e:
-        logger.error(f"Failed to fetch user interviews: {str(e)}")
-        raise DatabaseException(str(e))
+    except Exception as error:
+        logger.exception(
+            f"Failed to fetch interviews for user: {user_id}"
+        )
+
+        raise DatabaseException(
+            "Failed to retrieve user interviews."
+        ) from error
 
 
 def update_interview_status(

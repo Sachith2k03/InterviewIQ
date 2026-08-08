@@ -12,8 +12,7 @@ from app.exceptions.custom_exceptions import (
 def create_response(
         interview_id: str,
         question_number: int,
-        question: str,
-        audio_path: str | None = None,
+        audio_storage_path: str | None = None,
         transcript: str | None = None,
         answer_duration_seconds: int | None = None,
 ) -> dict[str, Any]:
@@ -30,8 +29,7 @@ def create_response(
                 {
                     "interview_id": interview_id,
                     "question_number": question_number,
-                    "question": question,
-                    "audio_path": audio_path,
+                    "audio_storage_path": audio_storage_path,
                     "transcript": transcript,
                     "answer_duration_seconds": answer_duration_seconds,
                 }

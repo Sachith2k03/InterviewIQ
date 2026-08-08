@@ -9,13 +9,26 @@ class ResumeResponse(BaseModel):
     user_id: UUID
     title: str
     file_name: str
-    file_path: str
-    parsed_text: str | None
+    storage_path: str
+    is_archived: bool
     created_at: datetime
+    updated_at: datetime
+
 
 
 class ResumeUploadResponse(BaseModel):
     success: bool
     message: str
     data: ResumeResponse
-    
+
+
+class ResumeListResponse(BaseModel):
+    success: bool
+    message: str
+    data: list[ResumeResponse]
+
+
+class ResumeDeleteResponse(BaseModel):
+    success: bool
+    message: str
+    action: str
