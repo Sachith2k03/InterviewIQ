@@ -4,27 +4,18 @@ from uuid import UUID
 from pydantic import BaseModel, ConfigDict, Field
 
 
-
 class ResponseBase(BaseModel):
-    """Base response model for all API responses."""
+    """Base model for an interview response."""
 
     question_number: int = Field(
         ge=1,
     )
 
-    question: str = Field(
-        min_length=1,
-    )
-
 
 class CreateResponseRequest(ResponseBase):
-    """Request model for creating an interview responses."""
+    """Request model for submitting an interview response."""
 
     interview_id: UUID
-
-    audio_path: str | None = None
-
-    transcript: str | None = None
 
     answer_duration_seconds: int | None = Field(
         default=None,
@@ -33,13 +24,15 @@ class CreateResponseRequest(ResponseBase):
 
 
 class UpdateTranscriptRequest(BaseModel):
-    """Update transcript."""
+    """Request model for updating a transcript."""
 
-    transcript: str 
+    transcript: str = Field(
+        min_length=1,
+    )
 
 
 class UpdateAnalysisRequest(BaseModel):
-    """Save AI analysis results."""
+    """Request model for saving AI analysis."""
 
     technical_score: float = Field(
         ge=0,
@@ -66,60 +59,48 @@ class UpdateAnalysisRequest(BaseModel):
         le=100,
     )
 
-    question_feedback: str
+    question_feedback: str = Field(
+        min_length=1,
+    )
 
 
 class ResponseResponse(ResponseBase):
-    """Interview response."""
+    """Interview response model."""
 
     model_config = ConfigDict(
         from_attributes=True,
     )
 
     id: UUID
-
     interview_id: UUID
 
-    audio_path: str | None
-
+    audio_storage_path: str | None
     transcript: str | None
-
     answer_duration_seconds: int | None
 
     technical_score: float | None
-
     communication_score: float | None
-
     confidence_score: float | None
-
     fluency_score: float | None
-
     overall_score: float | None
 
     question_feedback: str | None
 
     created_at: datetime
-
     updated_at: datetime
 
 
 class ResponseDetailResponse(BaseModel):
-    """Single Response"""
+    """API response containing one interview response."""
 
     success: bool
-
     message: str
-
     data: ResponseResponse
 
 
 class ResponseListResponse(BaseModel):
-    """List of Responses"""
+    """API response containing multiple interview responses."""
 
     success: bool
-
     message: str
-
     data: list[ResponseResponse]
-
-

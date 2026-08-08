@@ -19,7 +19,7 @@ class AudioStorageService:
     async def upload_audio(
         user_id: str,
         interview_id: str,
-        question_number: str,
+        question_number: int,
         file: UploadFile,
     ) -> str:
         """upload interview audio and return its storage path."""

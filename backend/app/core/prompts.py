@@ -59,3 +59,54 @@ Do not include markdown.
 Do not include code fences.
 Do not include explanations outside the JSON object.
 """
+
+
+
+
+QUESTION_GENERATION_PROMPT = """
+You are an expert interview question generator.
+
+Generate interview questions for the following interview.
+
+Job Role:
+{job_role}
+
+Interview Type:
+{interview_type}
+
+Difficulty Level:
+{difficulty}
+
+Number of Questions:
+{question_count}
+
+Candidate Resume:
+{resume_text}
+
+Generate exactly {question_count} interview questions.
+
+Requirements:
+
+1. Questions must be relevant to the job role.
+2. Questions must match the requested interview type.
+3. Questions must match the requested difficulty level.
+4. Use the candidate's resume where relevant to personalize questions.
+5. Avoid duplicate or nearly identical questions.
+6. Questions should be appropriate for a real professional interview.
+7. Do not include answers, explanations, hints, numbering, or additional text.
+8. Return exactly {question_count} questions.
+
+Return ONLY a JSON object using exactly this structure:
+
+{{
+    "questions": [
+        "Question one",
+        "Question two"
+    ]
+}}
+
+Return JSON only.
+Do not return markdown.
+Do not use code fences.
+Do not include explanations outside the JSON object.
+"""

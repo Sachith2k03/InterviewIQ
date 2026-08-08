@@ -1,5 +1,8 @@
 from uuid import UUID
 
+from app.schemas.question_generation import (
+    InterviewQuestionListResponse
+)
 from fastapi import APIRouter, Depends, status, Query
 
 from app.dependencies import get_current_user
@@ -9,6 +12,13 @@ from app.schemas.interview import (
     InterviewListResponse,
 )
 from app.services.interview_service import InterviewService
+from app.database.interview_question_queries import (
+    get_interview_questions 
+)
+from app.services.question_generation_service import (
+    QuestionGenerationService,
+)
+
 
 router = APIRouter(
     prefix="/interviews",
@@ -168,4 +178,49 @@ async def delete_interview(
     return {
         "success": True,
         "message": "Interview deleted successfully.",
+    }
+
+
+
+@router.post(
+    "/{interview_id}/questions/generate",
+    response_model=InterviewQuestionListResponse,
+)
+async def generate_interview_questions(
+    interview_id: UUID,
+    user=Depends(get_current_user),
+):
+    questions = QuestionGenerationService.generate_questions(
+        interview_id=str(interview_id),
+        user_id=str(user.id),
+    )
+
+    return {
+        "success": True,
+        "message": "Interview questions generated successfully.",
+        "data": questions,
+    }
+
+
+@router.get(
+    "/{interview_id}/questions",
+    response_model=InterviewQuestionListResponse,
+)
+async def list_interview_questions(
+    interview_id: UUID,
+    user=Depends(get_current_user),
+):
+    InterviewService.get_interview(
+        interview_id=str(interview_id),
+        user_id=str(user.id),
+    )
+
+    questions = get_interview_questions(
+        str(interview_id)
+    )
+
+    return {
+        "success": True,
+        "message": "Interview questions retrieved successfully.",
+        "data": questions,
     }

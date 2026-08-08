@@ -74,7 +74,7 @@ def get_interview(
             supabase.table("interviews")
             .select("*")
             .eq("id", interview_id)
-            .single()
+            .limit(1)
             .execute()
         )
 
@@ -83,7 +83,7 @@ def get_interview(
 
         logger.info(f"Interview fetched successfully: {interview_id}")
 
-        data = cast(dict[str, Any], response.data)
+        data = cast(dict[str, Any], response.data[0])
         return data
 
     except InterviewIQException:
@@ -221,144 +221,4 @@ def delete_interview(
 
     except Exception as e:
         logger.error(f"Failed to delete interview: {str(e)}")
-        raise DatabaseException(str(e))
-
-
-def save_response(
-    interview_id: str,
-    question_number: int,
-    question: str,
-    audio_storage_path: str | None = None,
-    transcript: str | None = None,
-    answer_duration_seconds: int | None = None,
-) -> dict[str, object]:
-    """Save a user's response."""
-
-    logger.info(
-        f"Saving response for interview {interview_id}, question {question_number}"
-    )
-
-    try:
-        response = (
-            supabase.table("interview_responses")
-            .insert(
-                {
-                    "interview_id": interview_id,
-                    "question_number": question_number,
-                    "question": question,
-                    "audio_storage_path": audio_storage_path,
-                    "transcript": transcript,
-                    "answer_duration_seconds": answer_duration_seconds,
-                }
-            )
-            .execute()
-        )
-
-        if not response.data:
-            raise DatabaseException("Failed to save response.")
-
-
-        data = cast(list[dict[str, Any]], response.data)
-        logger.info(
-            f"Response saved successfully: {data[0]['id']}"
-        )
-
-        return data[0]
-
-    except InterviewIQException:
-        raise
-
-    except Exception as e:
-        logger.error(f"Failed to save response: {str(e)}")
-        raise DatabaseException(str(e))
-
-
-def update_response_analysis(
-    response_id: str,
-    technical_score: float,
-    communication_score: float,
-    confidence_score: float,
-    fluency_score: float,
-    overall_score: float,
-    question_feedback: str,
-) -> dict[str, object]:
-    """Save AI evaluation for a response."""
-
-    logger.info(
-        f"Updating AI analysis for response: {response_id}"
-    )
-
-    try:
-        response = (
-            supabase.table("interview_responses")
-            .update(
-                {
-                    "technical_score": technical_score,
-                    "communication_score": communication_score,
-                    "confidence_score": confidence_score,
-                    "fluency_score": fluency_score,
-                    "overall_score": overall_score,
-                    "question_feedback": question_feedback,
-                }
-            )
-            .eq("id", response_id)
-            .execute()
-        )
-
-        if not response.data:
-            raise DatabaseException("Failed to update response analysis.")
-
-        logger.info(
-            f"AI analysis updated successfully: {response_id}"
-        )
-
-        data = cast(dict[str, Any], response.data[0])
-        logger.info(f"AI analysis updated successfully: {response_id}")
-        return data
-
-    except InterviewIQException:
-        raise
-
-    except Exception as e:
-        logger.error(
-            f"Failed to update response analysis: {str(e)}"
-        )
-        raise DatabaseException(str(e))
-
-
-def get_interview_responses(
-    interview_id: str,
-) -> list[dict[str, object]]:
-    """Get all responses for an interview."""
-
-    logger.info(
-        f"Fetching responses for interview: {interview_id}"
-    )
-
-    try:
-        response = (
-            supabase.table("interview_responses")
-            .select("*")
-            .eq("interview_id", interview_id)
-            .order("question_number")
-            .execute()
-        )
-
-        if not response.data:
-            raise NotFoundException("No responses found for this interview.")
-        
-
-        data = cast(list[dict[str, Any]], response.data)
-        logger.info(
-            f"{len(data)} responses fetched successfully for interview: {interview_id}"
-        )
-        return data
-
-    except InterviewIQException:
-        raise
-
-    except Exception as e:
-        logger.error(
-            f"Failed to fetch interview responses: {str(e)}"
-        )
         raise DatabaseException(str(e))

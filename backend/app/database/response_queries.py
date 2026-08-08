@@ -69,16 +69,19 @@ def get_response(
             supabase.table("interview_responses")
             .select("*")
             .eq("id", response_id)
-            .single()
+            .limit(1)
             .execute()
         )
 
-        data = cast(dict[str, Any], response.data)
-
-        if not data:
+        if not response.data:
             raise NotFoundException(
                 "Response not found."
             )
+
+        data = cast(
+            dict[str, Any],
+            response.data[0],
+        )
 
         logger.info(
             f"Response fetched successfully: {response_id}"
@@ -88,10 +91,15 @@ def get_response(
 
     except InterviewIQException:
         raise
+    except Exception as error:
+        logger.exception(
+            f"Failed to fetch response: {response_id}"
+        )
 
-    except Exception as e:
-        raise DatabaseException(str(e))
-    
+        raise DatabaseException(
+            "Failed to retrieve response."
+        ) from error
+
 
 def get_interview_responses(
     interview_id: str,
@@ -148,7 +156,11 @@ def update_transcript(
             .execute()
         )
 
+        if not response.data:
+            raise NotFoundException("Response not found.")
+
         data = cast(list[dict[str, Any]], response.data)
+
 
         logger.info(
             f"Transcript updated successfully: {response_id}"
@@ -195,6 +207,9 @@ def update_analysis(
             .execute()
         )
 
+        if not response.data:
+            raise NotFoundException("Response not found.")
+
         data = cast(list[dict[str, Any]], response.data)
 
         logger.info(
@@ -220,12 +235,17 @@ def delete_response(
     )
 
     try:
-        (
+        response = (
             supabase.table("interview_responses")
             .delete()
             .eq("id", response_id)
             .execute()
         )
+
+        if not response.data:
+            raise NotFoundException(
+                "Response not found."
+            )
 
         logger.info(
             f"Response deleted successfully: {response_id}"
@@ -234,5 +254,11 @@ def delete_response(
     except InterviewIQException:
         raise
 
-    except Exception as e:
-        raise DatabaseException(str(e))
+    except Exception as error:
+        logger.exception(
+            f"Failed to delete response: {response_id}"
+        )
+
+        raise DatabaseException(
+            "Failed to delete response."
+        ) from error

@@ -1,35 +1,27 @@
 import json
 
-import google.generativeai as genai #type: ignore[import]
+import google.generativeai as genai  # type: ignore[import]
 
 from app.core.config import settings
 from app.core.logging import logger
+from app.core.prompts import EVALUATION_PROMPT
 from app.exceptions.custom_exceptions import (
+    DatabaseException,
     InterviewIQException,
 )
-from app.core.prompts import (EVALUATION_PROMPT)
 from app.schemas.evaluation import EvaluationResult
 
+
 genai.configure(
-    api_key=settings.GEMINI_API_KEY
+    api_key=settings.GEMINI_API_KEY,
 )
-
-import json
-
-import google.generativeai as genai
-
-from app.core.logging import logger
-from app.core.prompts import EVALUATION_PROMPT
-from app.exceptions.custom_exceptions import InterviewIQException
 
 
 class EvaluationService:
+    """Handles AI evaluation of interview responses."""
 
     _model = genai.GenerativeModel(
-        model_name="gemini-3.5-flash",
-        generation_config={
-            "response_mime_type": "application/json",
-        },
+        "models/gemini-3.5-flash"
     )
 
     @staticmethod
@@ -39,7 +31,6 @@ class EvaluationService:
         job_role: str,
         difficulty: str,
     ) -> str:
-
         return EVALUATION_PROMPT.format(
             question=question,
             transcript=transcript,
@@ -54,7 +45,6 @@ class EvaluationService:
         job_role: str,
         difficulty: str,
     ) -> EvaluationResult:
-
         logger.info("Starting AI evaluation.")
 
         try:
@@ -66,32 +56,24 @@ class EvaluationService:
             )
 
             response = EvaluationService._model.generate_content(
-                prompt
+                prompt,
+                generation_config={
+                    "response_mime_type": "application/json",
+                },
             )
 
-            evaluation_data = json.loads(response.text)
-
-            evaluation = EvaluationResult.model_validate(
-                evaluation_data
-            )
-            
             logger.info("AI evaluation completed.")
 
-            return evaluation
+            data = json.loads(response.text)
+
+            return EvaluationResult(**data)
 
         except InterviewIQException:
             raise
 
-        except json.JSONDecodeError as e:
-            logger.exception("Invalid JSON returned by Gemini.")
-
-            raise InterviewIQException(
-                "AI returned an invalid evaluation response."
-            ) from e
-
-        except Exception as e:
+        except Exception as error:
             logger.exception("AI evaluation failed.")
 
-            raise InterviewIQException(
+            raise DatabaseException(
                 "Failed to evaluate interview response."
-            ) from e
+            ) from error
