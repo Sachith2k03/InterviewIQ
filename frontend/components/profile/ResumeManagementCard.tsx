@@ -106,7 +106,7 @@ export function ResumeManagementCard() {
         }
     
         const timer = setTimeout(() => {
-            setMessage(null);
+            setError(null);
         }, 5000);
 
         return () => clearTimeout(timer);

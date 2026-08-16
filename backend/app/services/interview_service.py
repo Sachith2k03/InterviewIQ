@@ -13,6 +13,8 @@ from app.database.interview_queries import (
     get_interview as db_get_interview,
     get_user_interviews as db_get_user_interviews,
     update_interview_status as db_update_interview_status,
+    pause_interview_timer as db_pause_interview_timer,
+    resume_interview_timer as db_resume_interview_timer
 )
 from app.database.resume_queries import get_resume
 from app.exceptions.custom_exceptions import (
@@ -22,6 +24,10 @@ from app.exceptions.custom_exceptions import (
 from app.schemas.interview import (
     InterviewResponse,
     InterviewHistoryItem
+)
+
+from app.database.response_queries import (
+    get_total_answer_duration,
 )
 
 from math import ceil
@@ -200,7 +206,7 @@ class InterviewService:
         user_id: str,
     ) -> InterviewResponse:
         """
-        Start an interview.
+        Start a new interview and begin its active timer.
         """
 
         logger.info(
@@ -208,22 +214,45 @@ class InterviewService:
         )
 
         try:
-            InterviewService._get_owned_interview(
-                interview_id,
-                user_id,
+            interview = (
+                InterviewService._get_owned_interview(
+                    interview_id,
+                    user_id,
+                )
             )
 
-            interview = db_update_interview_status(
-                interview_id=interview_id,
-                status=InterviewStatus.IN_PROGRESS,
-                started_at=datetime.now(timezone.utc),
+            now = datetime.now(timezone.utc)
+
+            if interview.status == InterviewStatus.COMPLETED:
+                return interview
+
+            if interview.started_at is None:
+                interview_data = (
+                    db_update_interview_status(
+                        interview_id=interview_id,
+                        status=InterviewStatus.IN_PROGRESS,
+                        started_at=now,
+                        duration_seconds=0,
+                    )
+                )
+
+            else:
+                interview_data = interview.model_dump()
+
+            updated_interview = (
+                db_resume_interview_timer(
+                    interview_id=interview_id,
+                    resumed_at=now,
+                )
             )
 
             logger.info(
-                f"Interview started: {interview_id}"
+                f"Interview timer started: {interview_id}"
             )
 
-            return InterviewResponse(**interview)
+            return InterviewResponse(
+                **updated_interview
+            )
 
         except InterviewIQException:
             raise
@@ -236,7 +265,8 @@ class InterviewService:
         user_id: str,
     ) -> InterviewResponse:
         """
-        Complete an interview.
+        Complete an interview and save its
+        total accumulated active duration.
         """
 
         logger.info(
@@ -244,22 +274,65 @@ class InterviewService:
         )
 
         try:
-            InterviewService._get_owned_interview(
-                interview_id,
-                user_id,
+            interview = (
+                InterviewService._get_owned_interview(
+                    interview_id,
+                    user_id,
+                )
             )
 
-            interview = db_update_interview_status(
-                interview_id=interview_id,
-                status=InterviewStatus.COMPLETED,
-                completed_at=datetime.now(timezone.utc),
+            if interview.status == InterviewStatus.COMPLETED:
+                return interview
+
+            completed_at = datetime.now(
+                timezone.utc
+            )
+
+            duration_seconds = (
+                interview.duration_seconds or 0
+            )
+
+            if interview.last_resumed_at is not None:
+                active_segment = max(
+                    int(
+                        (
+                            completed_at -
+                            interview.last_resumed_at
+                        ).total_seconds()
+                    ),
+                    0,
+                )
+
+                duration_seconds += (
+                    active_segment
+                )
+
+            updated_interview = (
+                db_update_interview_status(
+                    interview_id=interview_id,
+                    status=InterviewStatus.COMPLETED,
+                    completed_at=completed_at,
+                    duration_seconds=duration_seconds,
+                )
+            )
+
+            updated_interview = (
+                db_pause_interview_timer(
+                    interview_id=interview_id,
+                    duration_seconds=duration_seconds,
+                )
             )
 
             logger.info(
-                f"Interview completed: {interview_id}"
+                f"Interview completed: "
+                f"{interview_id} "
+                f"(active_duration="
+                f"{duration_seconds}s)"
             )
 
-            return InterviewResponse(**interview)
+            return InterviewResponse(
+                **updated_interview
+            )
 
         except InterviewIQException:
             raise
@@ -328,3 +401,126 @@ class InterviewService:
 
         except InterviewIQException:
             raise
+
+
+    # Resume an interview
+    @staticmethod
+    def resume_interview(
+        interview_id: str,
+        user_id: str,
+    ) -> InterviewResponse:
+        """
+        Resume an existing interview timer.
+        """
+
+        logger.info(
+            f"Resuming interview: {interview_id}"
+        )
+
+        try:
+            interview = (
+                InterviewService._get_owned_interview(
+                    interview_id,
+                    user_id,
+                )
+            )
+
+            if interview.status == InterviewStatus.COMPLETED:
+                return interview
+
+            if interview.last_resumed_at is not None:
+                return interview
+
+            now = datetime.now(timezone.utc)
+
+            updated_interview = (
+                db_resume_interview_timer(
+                    interview_id=interview_id,
+                    resumed_at=now,
+                )
+            )
+
+            logger.info(
+                f"Interview resumed: {interview_id}"
+            )
+
+            return InterviewResponse(
+                **updated_interview
+            )
+
+        except InterviewIQException:
+            raise
+
+
+    # Pause an interview
+    @staticmethod
+    def pause_interview(
+        interview_id: str,
+        user_id: str,
+    ) -> InterviewResponse:
+        """
+        Pause an interview and save accumulated active time.
+        """
+
+        logger.info(
+            f"Pausing interview: {interview_id}"
+        )
+
+        try:
+            interview = (
+                InterviewService._get_owned_interview(
+                    interview_id,
+                    user_id,
+                )
+            )
+
+            if interview.status == InterviewStatus.COMPLETED:
+                return interview
+
+            if interview.last_resumed_at is None:
+                return interview
+
+            now = datetime.now(timezone.utc)
+
+            current_duration = (
+                interview.duration_seconds or 0
+            )
+
+            active_segment = max(
+                int(
+                    (
+                        now -
+                        interview.last_resumed_at
+                    ).total_seconds()
+                ),
+                0,
+            )
+
+            duration_seconds = (
+                current_duration +
+                active_segment
+            )
+
+            updated_interview = (
+                db_pause_interview_timer(
+                    interview_id=interview_id,
+                    duration_seconds=duration_seconds,
+                )
+            )
+
+            logger.info(
+                f"Interview paused: {interview_id} "
+                f"(duration={duration_seconds}s)"
+            )
+
+            return InterviewResponse(
+                **updated_interview
+            )
+
+        except InterviewIQException:
+            raise
+
+
+
+
+

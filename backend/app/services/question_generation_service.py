@@ -1,6 +1,7 @@
 import json
 
 import google.generativeai as genai  # type: ignore[import-untyped]
+from pydantic import ValidationError as PydanticValidationError
 
 from app.core.config import settings
 from app.core.logging import logger
@@ -30,6 +31,20 @@ class QuestionGenerationService:
         model_name="gemini-3.5-flash",
         generation_config={
             "response_mime_type": "application/json",
+            "response_schema": {
+                "type": "object",
+                "properties": {
+                    "questions": {
+                        "type": "array",
+                        "items": {
+                            "type": "string",
+                        },
+                    },
+                },
+                "required": [
+                    "questions",
+                ],
+            },
         },
     )
 
@@ -147,19 +162,64 @@ class QuestionGenerationService:
                 resume_text=resume_text,
             )
 
-            response = (
-                QuestionGenerationService._model.generate_content(
-                    prompt
+            generated: GeneratedQuestions | None = None
+
+            for attempt in range(2):
+                logger.info(
+                    f"Generating interview questions "
+                    f"(attempt={attempt + 1}, "
+                    f"interview={interview_id})"
                 )
-            )
 
-            generation_data = json.loads(
-                response.text
-            )
+                response = (
+                    QuestionGenerationService
+                    ._model
+                    .generate_content(
+                        prompt
+                    )
+                )
 
-            generated = GeneratedQuestions.model_validate(
-                generation_data
-            )
+                try:
+                    response_text = response.text.strip()
+
+                    generation_data = json.loads(
+                        response_text
+                    )
+
+                    generated = (
+                        GeneratedQuestions.model_validate(
+                            generation_data
+                        )
+                    )
+
+                    logger.info(
+                        f"Valid question generation response received "
+                        f"(attempt={attempt + 1}, "
+                        f"interview={interview_id})"
+                    )
+
+                    break
+
+                except (
+                    json.JSONDecodeError,
+                    PydanticValidationError,
+                ) as error:
+                    logger.warning(
+                        f"Invalid AI question generation response "
+                        f"(attempt={attempt + 1}, "
+                        f"interview={interview_id}, "
+                        f"error={type(error).__name__})"
+                    )
+
+                    if attempt == 1:
+                        raise ValidationException(
+                            "AI returned an invalid question generation response."
+                        ) from error
+
+            if generated is None:
+                raise ValidationException(
+                    "AI returned an invalid question generation response."
+                )
 
             questions = (
                 QuestionGenerationService._validate_questions(
@@ -168,9 +228,11 @@ class QuestionGenerationService:
                 )
             )
 
-            saved_questions = db_create_interview_questions(
-                interview_id=interview_id,
-                questions=questions,
+            saved_questions = (
+                db_create_interview_questions(
+                    interview_id=interview_id,
+                    questions=questions,
+                )
             )
 
             logger.info(
@@ -183,15 +245,6 @@ class QuestionGenerationService:
 
         except InterviewIQException:
             raise
-
-        except json.JSONDecodeError as error:
-            logger.exception(
-                "Invalid JSON returned during question generation."
-            )
-
-            raise ValidationException(
-                "AI returned an invalid question generation response."
-            ) from error
 
         except Exception as error:
             logger.exception(

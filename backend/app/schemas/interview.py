@@ -57,6 +57,7 @@ class InterviewResponse(InterviewBase):
     started_at: datetime | None
     completed_at: datetime | None
     duration_seconds: int | None
+    last_resumed_at: datetime | None
 
     created_at: datetime
     updated_at: datetime

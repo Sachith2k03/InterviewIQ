@@ -262,3 +262,38 @@ def delete_response(
         raise DatabaseException(
             "Failed to delete response."
         ) from error
+
+def get_total_answer_duration(
+    interview_id: str,
+) -> int:
+    """Return total answer duration for an interview."""
+
+    try:
+        response = (
+            supabase.table("interview_responses")
+            .select("answer_duration_seconds")
+            .eq("interview_id", interview_id)
+            .execute()
+        )
+
+        rows = cast(
+            list[dict[str, object]],
+            response.data or [],
+        )
+
+        total_duration = 0
+
+        for row in rows:
+            value = row.get(
+                "answer_duration_seconds"
+            )
+
+            if isinstance(value, int):
+                total_duration += value
+
+        return total_duration
+
+    except Exception as error:
+        raise DatabaseException(
+            "Failed to calculate interview duration."
+        ) from error

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { usePathname } from "next/navigation";
 
 import Sidebar from "@/components/Sidebar";
 import Topbar from "@/components/Topbar";
@@ -11,8 +12,9 @@ export default function ProtectedLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const [isMobileSidebarOpen, setIsMobileSidebarOpen] =
-    useState(false);
+  const pathname = usePathname();
+
+  const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
 
   const [isDesktopSidebarCollapsed, setIsDesktopSidebarCollapsed] =
     useState(false);
@@ -25,9 +27,20 @@ export default function ProtectedLayout({
     setIsDesktopSidebarCollapsed((previous) => !previous);
   }
 
+  /*
+   * Active interview routes:
+   * /interviews/<uuid>
+   *
+   * But NOT:
+   * /interviews
+   * /interviews/create
+   */
+  const isInterviewRoom =
+    pathname.startsWith("/interviews/") && pathname !== "/interviews/create";
+
   return (
     <ProfileProvider>
-      <div className="flex h-screen overflow-hidden bg-[#020617] text-white">
+      <div className="flex h-dvh overflow-hidden bg-[#020617] text-white">
         <Sidebar
           isMobileOpen={isMobileSidebarOpen}
           setIsMobileOpen={setIsMobileSidebarOpen}
@@ -41,7 +54,13 @@ export default function ProtectedLayout({
             isMobileSidebarOpen={isMobileSidebarOpen}
           />
 
-          <main className="min-h-0 flex-1 overflow-y-auto p-4 md:p-6">
+          <main
+            className={
+              isInterviewRoom
+                ? "min-h-0 flex-1 overflow-hidden"
+                : "min-h-0 flex-1 overflow-y-auto p-4 md:p-6"
+            }
+          >
             {children}
           </main>
         </div>

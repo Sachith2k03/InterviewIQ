@@ -50,7 +50,7 @@ async def remove_resume(
     )
 
     message = (
-        "Resume removed successfully."
+        "Resume removed successfully. "
         "Its interview history has been preserved."
         if action == "archived"
         else "Resume deleted successfully."

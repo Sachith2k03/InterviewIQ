@@ -155,6 +155,7 @@ def update_interview_status(
     status: InterviewStatus,
     started_at: datetime | None = None,
     completed_at: datetime | None = None,
+    duration_seconds: int | None = None,
 ) -> dict[str, object]:
     """Update interview status."""
 
@@ -171,6 +172,9 @@ def update_interview_status(
 
     if completed_at is not None:
         update_data["completed_at"] = completed_at.isoformat()
+
+    if duration_seconds is not None:
+        update_data["duration_seconds"] = duration_seconds
 
     try:
         response = (
@@ -222,3 +226,98 @@ def delete_interview(
     except Exception as e:
         logger.error(f"Failed to delete interview: {str(e)}")
         raise DatabaseException(str(e))
+
+
+def resume_interview_timer(
+    interview_id: str,
+    resumed_at: datetime,
+) -> dict:
+    """
+    Start or resume the active interview timer.
+    """
+
+    logger.info(
+        f"Resuming interview timer: {interview_id}"
+    )
+
+    try:
+        response = (
+            supabase.table("interviews")
+            .update(
+                {
+                    "last_resumed_at": resumed_at.isoformat(),
+                }
+            )
+            .eq("id", interview_id)
+            .execute()
+        )
+
+        if not response.data:
+            raise NotFoundException(
+                "Interview not found."
+            )
+
+        return cast(
+            dict[str, object],
+            response.data[0],
+        )
+
+    except InterviewIQException:
+        raise
+
+    except Exception as error:
+        logger.exception(
+            "Failed to resume interview timer."
+        )
+
+        raise DatabaseException(
+            "Failed to resume interview timer."
+        ) from error
+
+
+def pause_interview_timer(
+    interview_id: str,
+    duration_seconds: int,
+) -> dict:
+    """
+    Save accumulated active duration and pause timer.
+    """
+
+    logger.info(
+        f"Pausing interview timer: {interview_id}"
+    )
+
+    try:
+        response = (
+            supabase.table("interviews")
+            .update(
+                {
+                    "duration_seconds": duration_seconds,
+                    "last_resumed_at": None,
+                }
+            )
+            .eq("id", interview_id)
+            .execute()
+        )
+
+        if not response.data:
+            raise NotFoundException(
+                "Interview not found."
+            )
+
+        return cast(
+            dict[str, object],
+            response.data[0],
+        )
+
+    except InterviewIQException:
+        raise
+
+    except Exception as error:
+        logger.exception(
+            "Failed to pause interview timer."
+        )
+
+        raise DatabaseException(
+            "Failed to pause interview timer."
+        ) from error

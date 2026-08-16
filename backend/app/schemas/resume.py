@@ -9,7 +9,7 @@ class ResumeResponse(BaseModel):
     user_id: UUID
     title: str
     file_name: str
-    storage_path: str
+    storage_path: str | None = None
     is_archived: bool
     created_at: datetime
     updated_at: datetime

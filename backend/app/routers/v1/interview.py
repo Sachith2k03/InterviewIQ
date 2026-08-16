@@ -19,6 +19,7 @@ from app.services.question_generation_service import (
     QuestionGenerationService,
 )
 
+from app.services.report_service import ReportService
 
 router = APIRouter(
     prefix="/interviews",
@@ -135,6 +136,11 @@ async def complete_interview(
         user_id=str(user.id),
     )
 
+    ReportService.generate_report(
+        interview_id=str(interview_id),
+        user_id=str(user.id),
+    )
+
     return {
         "success": True,
         "message": "Interview completed successfully.",
@@ -223,4 +229,46 @@ async def list_interview_questions(
         "success": True,
         "message": "Interview questions retrieved successfully.",
         "data": questions,
+    }
+
+@router.patch(
+    "/{interview_id}/resume",
+    response_model=InterviewDetailResponse,
+)
+async def resume_interview(
+    interview_id: UUID,
+    user=Depends(get_current_user),
+):
+    interview = (
+        InterviewService.resume_interview(
+            interview_id=str(interview_id),
+            user_id=str(user.id),
+        )
+    )
+
+    return {
+        "success": True,
+        "message": "Interview resumed successfully.",
+        "data": interview,
+    }
+
+@router.patch(
+    "/{interview_id}/pause",
+    response_model=InterviewDetailResponse,
+)
+async def pause_interview(
+    interview_id: UUID,
+    user=Depends(get_current_user),
+):
+    interview = (
+        InterviewService.pause_interview(
+            interview_id=str(interview_id),
+            user_id=str(user.id),
+        )
+    )
+
+    return {
+        "success": True,
+        "message": "Interview paused successfully.",
+        "data": interview,
     }

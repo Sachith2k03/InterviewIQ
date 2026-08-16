@@ -85,6 +85,13 @@ Candidate Resume:
 
 Generate exactly {question_count} interview questions.
 
+Question generation guidance:
+- technical: focus on technical concepts, coding, debugging, and implementation.
+- behavioral: focus on past experiences, teamwork, communication, and decision-making.
+- system_design: focus on architecture, scalability, trade-offs, reliability, APIs, databases, and distributed-system design.
+- hr: focus on motivation, career goals, strengths, weaknesses, and cultural fit.
+- mixed: create a balanced combination of relevant interview question types.
+
 Requirements:
 
 1. Questions must be relevant to the job role.

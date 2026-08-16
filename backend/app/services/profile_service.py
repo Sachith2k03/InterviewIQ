@@ -11,7 +11,9 @@ class ProfileService:
     """
 
     @staticmethod
-    def get_profile(user_id: str):
+    def get_profile(
+        user_id: str
+    ) -> dict[str, object]:
         """
         Retrieve a user's profile.
         """

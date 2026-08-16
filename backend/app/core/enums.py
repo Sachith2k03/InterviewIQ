@@ -14,6 +14,7 @@ class InterviewType(StrEnum):
     BEHAVIORAL = "behavioral"
     HR = "hr"
     MIXED = "mixed"
+    SYSTEM_DESIGN = "system_design"
 
 
 class InterviewDifficulty(StrEnum):
