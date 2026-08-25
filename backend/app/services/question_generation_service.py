@@ -139,13 +139,13 @@ class QuestionGenerationService:
                     "The selected resume does not belong to this user."
                 )
 
-            raw_resume_text = resume.get(
-                "parsed_text"
+            sanitized_resume_text = resume.get(
+                "sanitized_text"
             )
 
             resume_text = (
-                raw_resume_text
-                if isinstance(raw_resume_text, str)
+                sanitized_resume_text
+                if isinstance(sanitized_resume_text, str)
                 else ""
             )
 

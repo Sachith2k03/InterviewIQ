@@ -10,6 +10,7 @@ API_V1_PREFIX = "/api/v1"
 RESUME_BUCKET = "resumes"
 REPORT_BUCKET = "reports"
 AUDIO_BUCKET = "audio"
+AVATAR_BUCKET = "avatars"
 
 # File Upload
 ALLOWED_RESUME_MIME_TYPES = [
@@ -27,6 +28,16 @@ ALLOWED_AUDIO_MIME_TYPES = [
     "video/webm",
 ]
 MAX_AUDIO_SIZE = 50 * 1024 * 1024  # 50 MB
+
+
+# Avatar Upload
+ALLOWED_AVATAR_MIME_TYPES = [
+    "image/jpeg",
+    "image/png",
+    "image/webp",
+]
+
+MAX_AVATAR_SIZE = 2 * 1024 * 1024  # 2 MB
 
 # Authentication
 BEARER_PREFIX = "Bearer "

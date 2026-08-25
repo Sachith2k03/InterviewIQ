@@ -57,7 +57,7 @@ export default function ProtectedLayout({
           <main
             className={
               isInterviewRoom
-                ? "min-h-0 flex-1 overflow-hidden"
+                ? "min-h-0 flex-1 overflow-y-auto lg:overflow-hidden"
                 : "min-h-0 flex-1 overflow-y-auto p-4 md:p-6"
             }
           >

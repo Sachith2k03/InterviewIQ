@@ -9,51 +9,180 @@ export interface Profile {
   updated_at: string;
 }
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL;
+const API_URL =
+  process.env.NEXT_PUBLIC_API_URL;
 
-export async function getProfile(): Promise<Profile> {
-  if (!API_URL) {
-    throw new Error("NEXT_PUBLIC_API_URL is not configured");
-  }
-
-  const supabase = createClient();
+async function getAccessToken(): Promise<string> {
+  const supabase =
+    createClient();
 
   const {
     data: { session },
-    error: sessionError,
-  } = await supabase.auth.getSession();
+    error,
+  } =
+    await supabase.auth.getSession();
 
-  if (sessionError) {
-    throw new Error(sessionError.message);
+  if (error) {
+    throw new Error(
+      error.message,
+    );
   }
 
   if (!session?.access_token) {
-    throw new Error("User is not authenticated");
+    throw new Error(
+      "User is not authenticated.",
+    );
   }
 
-  const response = await fetch(`${API_URL}/profile`, {
-    method: "GET",
-    headers: {
-      Authorization: `Bearer ${session.access_token}`,
-    },
-    cache: "no-store",
-  });
+  return session.access_token;
+}
+
+async function getErrorMessage(
+  response: Response,
+  fallback: string,
+): Promise<string> {
+  try {
+    const data =
+      await response.json();
+
+    return (
+      data?.message ??
+      data?.detail ??
+      fallback
+    );
+  } catch {
+    return fallback;
+  }
+}
+
+export async function getProfile(): Promise<Profile> {
+  if (!API_URL) {
+    throw new Error(
+      "NEXT_PUBLIC_API_URL is not configured.",
+    );
+  }
+
+  const accessToken =
+    await getAccessToken();
+
+  const response =
+    await fetch(
+      `${API_URL}/profile`,
+      {
+        method: "GET",
+        headers: {
+          Accept:
+            "application/json",
+          Authorization:
+            `Bearer ${accessToken}`,
+        },
+        cache: "no-store",
+      },
+    );
 
   if (!response.ok) {
-    let message = "Failed to load profile";
-
-    try {
-      const errorData = (await response.json()) as {
-        detail?: string;
-      };
-
-      message = errorData.detail ?? message;
-    } catch {
-      // Ignore invalid backend error responses.
-    }
-
-    throw new Error(message);
+    throw new Error(
+      await getErrorMessage(
+        response,
+        "Failed to load profile.",
+      ),
+    );
   }
 
-  return (await response.json()) as Profile;
+  return (
+    await response.json()
+  ) as Profile;
+}
+
+export async function updateProfile(
+  fullName: string,
+): Promise<Profile> {
+  if (!API_URL) {
+    throw new Error(
+      "NEXT_PUBLIC_API_URL is not configured.",
+    );
+  }
+
+  const accessToken =
+    await getAccessToken();
+
+  const response =
+    await fetch(
+      `${API_URL}/profile`,
+      {
+        method: "PATCH",
+        headers: {
+          Accept:
+            "application/json",
+          Authorization:
+            `Bearer ${accessToken}`,
+          "Content-Type":
+            "application/json",
+        },
+        body: JSON.stringify({
+          full_name:
+            fullName,
+        }),
+      },
+    );
+
+  if (!response.ok) {
+    throw new Error(
+      await getErrorMessage(
+        response,
+        "Failed to update profile.",
+      ),
+    );
+  }
+
+  return (
+    await response.json()
+  ) as Profile;
+}
+
+export async function uploadProfileAvatar(
+  file: File,
+): Promise<Profile> {
+  if (!API_URL) {
+    throw new Error(
+      "NEXT_PUBLIC_API_URL is not configured.",
+    );
+  }
+
+  const accessToken =
+    await getAccessToken();
+
+  const formData =
+    new FormData();
+
+  formData.append(
+    "avatar",
+    file,
+  );
+
+  const response =
+    await fetch(
+      `${API_URL}/profile/avatar`,
+      {
+        method: "POST",
+        headers: {
+          Authorization:
+            `Bearer ${accessToken}`,
+        },
+        body: formData,
+      },
+    );
+
+  if (!response.ok) {
+    throw new Error(
+      await getErrorMessage(
+        response,
+        "Failed to update profile picture.",
+      ),
+    );
+  }
+
+  return (
+    await response.json()
+  ) as Profile;
 }

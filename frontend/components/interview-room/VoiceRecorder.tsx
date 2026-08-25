@@ -328,9 +328,9 @@ export default function VoiceRecorder({
   ];
 
   return (
-    <div className="flex min-h-0 flex-1 flex-col items-center justify-center">
+    <div className="flex w-full flex-col items-center pt-4 pb-1 sm:py-6 lg:min-h-0 lg:flex-1 lg:justify-center lg:py-4">
       {/* Status */}
-      <p className="text-sm font-medium text-slate-300">
+      <p className="text-center text-xs font-medium text-slate-300 sm:text-sm">
         {isRecording
           ? "Listening..."
           : isProcessing
@@ -342,7 +342,7 @@ export default function VoiceRecorder({
 
       {/* Timer */}
       <p
-        className={`mt-2 font-mono text-sm ${
+        className={`mt-1.5 font-mono text-xs sm:mt-2 sm:text-sm ${
           isRecording ? "text-blue-300" : "text-slate-500"
         }`}
       >
@@ -350,11 +350,11 @@ export default function VoiceRecorder({
       </p>
 
       {/* Waveform */}
-      <div className="mt-5 flex h-16 shrink-0 items-center justify-center gap-1">
+      <div className="mt-3 flex h-12 w-full max-w-xs shrink-0 items-center justify-center gap-1 sm:mt-5 sm:h-16">
         {waveformBars.map((multiplier, index) => {
-          const baseHeight = 12;
+          const baseHeight = 10;
 
-          const activeHeight = 12 + audioLevel * multiplier * 48;
+          const activeHeight = 10 + audioLevel * multiplier * 38;
 
           return (
             <span
@@ -368,7 +368,7 @@ export default function VoiceRecorder({
               }`}
               style={{
                 height: `${
-                  isRecording ? activeHeight : baseHeight + multiplier * 20
+                  isRecording ? activeHeight : baseHeight + multiplier * 14
                 }px`,
               }}
             />
@@ -383,61 +383,66 @@ export default function VoiceRecorder({
         disabled={isProcessing}
         aria-label={isRecording ? "Stop recording" : "Start recording"}
         className={`
-          mt-5
-          flex
-          h-20
-          w-20
-          shrink-0
-          items-center
-          justify-center
-          rounded-full
-          border
-          transition-all
-          duration-200
-          lg:h-24
-          lg:w-24
-          ${
-            isRecording
-              ? "border-red-500/60 bg-red-500/10 shadow-[0_0_45px_rgba(239,68,68,0.25)]"
-              : isProcessing
-                ? "cursor-not-allowed border-violet-500/30 bg-violet-500/10"
-                : "border-blue-500/40 bg-blue-600/10 shadow-[0_0_40px_rgba(37,99,235,0.25)] hover:border-blue-400/70 hover:bg-blue-500/15"
-          }
-        `}
+        mt-3
+        flex
+        h-16
+        w-16
+        shrink-0
+        items-center
+        justify-center
+        rounded-full
+        border
+        transition-all
+        duration-200
+        sm:mt-5
+        sm:h-20
+        sm:w-20
+        lg:h-24
+        lg:w-24
+        ${
+          isRecording
+            ? "border-red-500/60 bg-red-500/10 shadow-[0_0_45px_rgba(239,68,68,0.25)]"
+            : isProcessing
+              ? "cursor-not-allowed border-violet-500/30 bg-violet-500/10"
+              : "border-blue-500/40 bg-blue-600/10 shadow-[0_0_40px_rgba(37,99,235,0.25)] hover:border-blue-400/70 hover:bg-blue-500/15"
+        }
+      `}
       >
         <div
           className={`
-            flex
-            h-14
-            w-14
-            items-center
-            justify-center
-            rounded-full
-            text-white
-            transition
-            lg:h-16
-            lg:w-16
-            ${
-              isRecording
-                ? "bg-red-600"
-                : isProcessing
-                  ? "bg-violet-600"
-                  : "bg-blue-600"
-            }
-          `}
+          flex
+          h-11
+          w-11
+          items-center
+          justify-center
+          rounded-full
+          text-white
+          transition
+          sm:h-14
+          sm:w-14
+          lg:h-16
+          lg:w-16
+          ${
+            isRecording
+              ? "bg-red-600"
+              : isProcessing
+                ? "bg-violet-600"
+                : "bg-blue-600"
+          }
+        `}
         >
           {isProcessing ? (
-            <Loader2 className="h-6 w-6 animate-spin" />
+            <Loader2 className="h-5 w-5 animate-spin sm:h-6 sm:w-6" />
           ) : isRecording ? (
-            <Square className="h-5 w-5 fill-current" />
+            <Square className="h-4 w-4 fill-current sm:h-5 sm:w-5" />
           ) : (
-            <Mic className="h-6 w-6 lg:h-7 lg:w-7" />
+            <Mic className="h-5 w-5 sm:h-6 sm:w-6 lg:h-7 lg:w-7" />
           )}
         </div>
       </button>
 
       {/* Action hint */}
-      <p className="mt-4 shrink-0 text-sm text-slate-400">
+      <p className="mt-3 max-w-sm shrink-0 px-3 text-center text-xs leading-5 text-slate-400 sm:mt-4 sm:text-sm">
         {isRecording
           ? "Tap to stop"
           : isProcessing
@@ -447,8 +452,8 @@ export default function VoiceRecorder({
 
       {/* Error */}
       {error ? (
-        <div className="mt-4 max-w-md rounded-lg border border-red-500/20 bg-red-500/10 px-4 py-3 text-center">
-          <p className="text-sm text-red-400">{error}</p>
+        <div className="mt-4 w-full max-w-md rounded-lg border border-red-500/20 bg-red-500/10 px-4 py-3 text-center">
+          <p className="text-sm leading-5 text-red-400">{error}</p>
         </div>
       ) : null}
     </div>

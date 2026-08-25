@@ -20,6 +20,8 @@ from app.services.question_generation_service import (
 )
 
 from app.services.report_service import ReportService
+from app.core.enums import InterviewStatus
+from app.services.notification_service import NotificationService
 
 router = APIRouter(
     prefix="/interviews",
@@ -36,14 +38,49 @@ async def create_interview(
     request: CreateInterviewRequest,
     user=Depends(get_current_user),
 ):
-    interview = InterviewService.create_interview(
-        user_id=str(user.id),
-        resume_id=str(request.resume_id),
-        job_role=request.job_role,
-        interview_type=request.interview_type,
-        difficulty=request.difficulty,
-        question_count=request.question_count,
+    interview = (
+        InterviewService
+        .create_interview(
+            user_id=str(
+                user.id
+            ),
+            resume_id=str(
+                request.resume_id
+            ),
+            job_role=(
+                request.job_role
+            ),
+            interview_type=(
+                request.interview_type
+            ),
+            difficulty=(
+                request.difficulty
+            ),
+            question_count=(
+                request.question_count
+            ),
+        )
     )
+
+    NotificationService.create_safely(
+        user_id=str(
+            user.id
+        ),
+        notification_type=(
+            "interview_created"
+        ),
+        title=(
+            "Interview Created"
+        ),
+        message=(
+            f"Your {request.job_role} "
+            "mock interview is ready."
+        ),
+        related_interview_id=str(
+            interview.id
+        ),
+    )
+
 
     return {
         "success": True,
@@ -86,19 +123,37 @@ async def list_interviews(
         ge=1,
         le=50,
     ),
-    user=Depends(get_current_user),
+    interview_status: InterviewStatus | None = Query(
+        default=None,
+        alias="status",
+    ),
+    user=Depends(
+        get_current_user
+    ),
 ):
-    result = InterviewService.list_user_interviews(
-        user_id=str(user.id),
-        page=page,
-        page_size=page_size,
+    result = (
+        InterviewService
+        .list_user_interviews(
+            user_id=str(
+                user.id
+            ),
+            page=page,
+            page_size=page_size,
+            status=interview_status,
+        )
     )
 
     return {
         "success": True,
-        "message": "Interviews retrieved successfully.",
-        "data": result["items"],
-        "pagination": result["pagination"],
+        "message": (
+            "Interviews retrieved successfully."
+        ),
+        "data": result[
+            "items"
+        ],
+        "pagination": result[
+            "pagination"
+        ],
     }
 
 
@@ -137,10 +192,33 @@ async def complete_interview(
     )
 
     ReportService.generate_report(
-        interview_id=str(interview_id),
-        user_id=str(user.id),
+        interview_id=str(
+            interview_id
+        ),
+        user_id=str(
+            user.id
+        ),
     )
 
+    NotificationService.create_safely(
+        user_id=str(
+            user.id
+        ),
+        notification_type=(
+            "report_ready"
+        ),
+        title=(
+            "Interview Complete"
+        ),
+        message=(
+            f"Your {interview.job_role} "
+            "interview is complete and "
+            "your report is ready."
+        ),
+        related_interview_id=str(
+            interview_id
+        ),
+    )
     return {
         "success": True,
         "message": "Interview completed successfully.",

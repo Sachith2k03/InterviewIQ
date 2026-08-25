@@ -17,6 +17,9 @@ from app.exceptions.custom_exceptions import (
 )
 from app.services.storage_service import StorageService
 from app.utils.validators import validate_resume
+from app.services.pii_sanitization_service import (
+    PIISanitizationService,
+)
 
 
 class ResumeService:
@@ -58,7 +61,7 @@ class ResumeService:
             )
 
         try:
-            parsed_text = await ResumeService.extract_text(
+            raw_text = await ResumeService.extract_text(
                 file
             )
 
@@ -74,10 +77,20 @@ class ResumeService:
                 "Unable to process the uploaded PDF."
             ) from error
 
-        if not parsed_text.strip():
+        if not raw_text.strip():
             raise ValidationException(
                 "No readable text was found in the uploaded PDF."
             )
+
+        sanitized_text = PIISanitizationService.sanitize(raw_text)
+
+        if not sanitized_text.strip():
+            raise ValidationException(
+                "No usable resume information remained after privacy processing."
+            )
+
+        
+
 
         # extract_text reads the file, so reset it before uploading.
         await file.seek(0)
@@ -97,7 +110,7 @@ class ResumeService:
                 title=title,
                 file_name=file.filename,
                 file_path=storage_path,
-                parsed_text=parsed_text,
+                sanitized_text=sanitized_text,
             )
 
         except Exception:

@@ -1,7 +1,7 @@
 from datetime import datetime
 from typing import Optional
 
-from pydantic import BaseModel, ConfigDict, EmailStr
+from pydantic import BaseModel, ConfigDict, EmailStr, Field
 
 class AuthenticatedUser(BaseModel):
     """
@@ -23,5 +23,13 @@ class ProfileResponse(BaseModel):
     avatar_url: str | None = None
     created_at: datetime | None = None
     updated_at: datetime | None = None
+
+
+class ProfileUpdateRequest(BaseModel):
+    full_name: str = Field(
+        min_length=2,
+        max_length=100,
+    )
+
 
 

@@ -148,12 +148,14 @@ class InterviewService:
         user_id: str,
         page: int = 1,
         page_size: int = 10,
+        status: InterviewStatus | None = None,
     ) -> dict[str, object]:
         """Get paginated interviews for a user."""
 
         logger.info(
             f"Fetching interviews for user: {user_id}, "
-            f"page: {page}, page_size: {page_size}"
+            f"page: {page}, page_size: {page_size}, "
+            f"status: {status.value if status else 'all'}"
         )
 
         try:
@@ -161,6 +163,7 @@ class InterviewService:
                 user_id=user_id,
                 page=page,
                 page_size=page_size,
+                status=status,
             )
 
             raw_interviews = cast(
@@ -174,12 +177,18 @@ class InterviewService:
             )
 
             interviews = [
-                InterviewHistoryItem(**interview)
-                for interview in raw_interviews
+                InterviewHistoryItem(
+                    **interview
+                )
+                for interview
+                in raw_interviews
             ]
 
             total_pages = (
-                ceil(total_items / page_size)
+                ceil(
+                    total_items
+                    / page_size
+                )
                 if total_items > 0
                 else 0
             )
@@ -189,15 +198,26 @@ class InterviewService:
                 "pagination": {
                     "page": page,
                     "page_size": page_size,
-                    "total_items": total_items,
-                    "total_pages": total_pages,
-                    "has_next": page < total_pages,
-                    "has_previous": page > 1,
+                    "total_items": (
+                        total_items
+                    ),
+                    "total_pages": (
+                        total_pages
+                    ),
+                    "has_next": (
+                        page
+                        < total_pages
+                    ),
+                    "has_previous": (
+                        page > 1
+                        and total_pages > 0
+                    ),
                 },
             }
 
         except InterviewIQException:
             raise
+
 
     # Start an interview
     @staticmethod

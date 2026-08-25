@@ -98,25 +98,64 @@ def get_user_interviews(
     user_id: str,
     page: int = 1,
     page_size: int = 10,
+    status: InterviewStatus | None = None,
 ) -> dict[str, object]:
-    """Get paginated interview history belonging to a user."""
+    """
+    Get paginated interviews belonging to a user.
+
+    When status is provided, filtering happens
+    before pagination so counts and page metadata
+    remain accurate.
+    """
 
     logger.info(
         f"Fetching interviews for user: {user_id}, "
-        f"page: {page}, page_size: {page_size}"
+        f"page: {page}, page_size: {page_size}, "
+        f"status: {status.value if status else 'all'}"
     )
 
     try:
-        start = (page - 1) * page_size
-        end = start + page_size - 1
+        start = (
+            page - 1
+        ) * page_size
+
+        end = (
+            start
+            + page_size
+            - 1
+        )
+
+        query = (
+            supabase
+            .table(
+                "interview_history_view"
+            )
+            .select(
+                "*",
+                count=CountMethod.exact,
+            )
+            .eq(
+                "user_id",
+                user_id,
+            )
+        )
+
+        if status is not None:
+            query = query.eq(
+                "status",
+                status.value,
+            )
 
         response = (
-            supabase
-            .table("interview_history_view")
-            .select("*", count=CountMethod.exact)
-            .eq("user_id", user_id)
-            .order("created_at", desc=True)
-            .range(start, end)
+            query
+            .order(
+                "created_at",
+                desc=True,
+            )
+            .range(
+                start,
+                end,
+            )
             .execute()
         )
 
@@ -125,11 +164,15 @@ def get_user_interviews(
             response.data or [],
         )
 
-        total_items = response.count or 0
+        total_items = (
+            response.count
+            or 0
+        )
 
         logger.info(
-            f"{len(interviews)} interviews fetched successfully "
-            f"for user: {user_id}. Total interviews: {total_items}"
+            f"{len(interviews)} interviews fetched "
+            f"successfully for user: {user_id}. "
+            f"Total interviews: {total_items}"
         )
 
         return {
@@ -142,7 +185,8 @@ def get_user_interviews(
 
     except Exception as error:
         logger.exception(
-            f"Failed to fetch interviews for user: {user_id}"
+            f"Failed to fetch interviews "
+            f"for user: {user_id}"
         )
 
         raise DatabaseException(

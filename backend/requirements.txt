@@ -6,7 +6,7 @@ uvicorn[standard]==0.30.6
 pydantic==2.9.2
 pydantic-settings==2.5.2
 python-dotenv==1.0.1
-pydantic[email] ==2.9.2
+pydantic[email]==2.9.2
 
 # Authentication & Security
 python-jose[cryptography]==3.3.0
@@ -16,12 +16,12 @@ passlib[bcrypt]==1.7.4
 python-multipart==0.0.12
 
 # Database
-supabase==2.5.1
+supabase==2.31.0
 websockets==14.2
 
 # AI
 google-generativeai==0.8.0
-openai-whisper
+openai-whisper==20250625
 
 # PDF Processing
 pymupdf==1.24.10

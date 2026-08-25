@@ -15,7 +15,7 @@ def create_resume(
     title: str,
     file_name: str,
     file_path: str,
-    parsed_text: str | None = None,
+    sanitized_text: str | None = None,
 ) -> dict[str, object]:
     """Save a new resume record."""
 
@@ -28,7 +28,7 @@ def create_resume(
                     "title": title,
                     "file_name": file_name,
                     "storage_path": file_path,
-                    "parsed_text": parsed_text,
+                    "sanitized_text": sanitized_text,
                 }
             )
             .execute()
@@ -63,7 +63,7 @@ def get_resume(
             supabase.table("resumes")
             .select(
                 "id, user_id, title, file_name, storage_path, "
-                "parsed_text, is_archived, archived_at, "
+                "sanitized_text, is_archived, archived_at, "
                 "created_at, updated_at"
             )
             .eq("id", resume_id)
@@ -182,7 +182,7 @@ def archive_resume(
     Archive a used resume.
 
     The database row remains available for interview history,
-    but the PDF path and parsed text are removed.
+    but the PDF path and sanitized text are removed.
     """
 
     try:
@@ -195,7 +195,7 @@ def archive_resume(
                         timezone.utc
                     ).isoformat(),
                     "storage_path": None,
-                    "parsed_text": None,
+                    "sanitized_text": None,
                 }
             )
             .eq("id", resume_id)

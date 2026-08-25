@@ -478,7 +478,8 @@ export default function InterviewRoomPage() {
   const currentQuestion = questions[currentQuestionIndex];
 
   return (
-    <div className="relative flex h-full min-h-0 flex-col overflow-hidden bg-[#050d1d]">
+    <div className="relative flex min-h-full flex-col bg-[#050d1d] lg:h-full lg:min-h-0 lg:overflow-hidden">
+      {/* Header */}
       <InterviewHeader
         jobRole={interview.job_role}
         interviewType={interview.interview_type}
@@ -487,12 +488,14 @@ export default function InterviewRoomPage() {
         totalQuestions={questions.length}
         elapsedTime={elapsedTime}
         onEnd={() => {
-          setShowLeaveConfirmation(true);
+          console.log("Open end interview dialog");
         }}
       />
 
-      <div className="grid min-h-0 flex-1 gap-4 overflow-hidden p-4 lg:grid-cols-[minmax(0,1fr)_280px]">
-        <main className="flex min-h-0 min-w-0 flex-col overflow-hidden rounded-xl border border-white/10 bg-[#071126] p-5 lg:p-6">
+      {/* Main interview area */}
+      <div className="grid flex-1 content-center items-start gap-3 p-2.5 sm:gap-4 sm:p-4 lg:min-h-0 lg:content-stretch lg:items-stretch lg:grid-cols-[minmax(0,1fr)_280px] lg:overflow-hidden">
+        {/* Question + recorder */}
+        <main className="flex w-full min-w-0 flex-col self-start rounded-xl border border-white/10 bg-[#071126] p-3.5 sm:p-5 lg:h-full lg:min-h-0 lg:self-stretch lg:overflow-hidden lg:p-6">
           <QuestionCard
             questionNumber={currentQuestion.question_number}
             question={currentQuestion.question}
@@ -506,7 +509,7 @@ export default function InterviewRoomPage() {
           />
 
           {completionError ? (
-            <div className="mx-auto mb-2 max-w-md rounded-lg border border-red-500/20 bg-red-500/10 px-4 py-3 text-center">
+            <div className="mx-auto mt-4 w-full max-w-md rounded-lg border border-red-500/20 bg-red-500/10 px-4 py-3 text-center lg:mb-2">
               <p className="text-sm text-red-400">{completionError}</p>
 
               <Button
@@ -523,12 +526,14 @@ export default function InterviewRoomPage() {
           ) : null}
         </main>
 
+        {/* Desktop only */}
         <AIInterviewerPanel />
       </div>
 
+      {/* Completing overlay */}
       {isCompletingInterview ? (
-        <div className="absolute inset-0 z-50 flex items-center justify-center bg-[#050d1d]/80 backdrop-blur-sm">
-          <div className="rounded-xl border border-white/10 bg-[#111a2d] px-8 py-6 text-center shadow-xl">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-[#050d1d]/80 px-4 backdrop-blur-sm">
+          <div className="w-full max-w-sm rounded-xl border border-white/10 bg-[#111a2d] px-6 py-6 text-center shadow-xl sm:px-8">
             <Loader2 className="mx-auto h-7 w-7 animate-spin text-blue-400" />
 
             <p className="mt-3 text-sm font-medium text-slate-200">
@@ -541,63 +546,6 @@ export default function InterviewRoomPage() {
           </div>
         </div>
       ) : null}
-
-      <AlertDialog
-        open={showLeaveConfirmation}
-        onOpenChange={(open) => {
-          if (!isLeavingInterview) {
-            setShowLeaveConfirmation(open);
-          }
-        }}
-      >
-        <AlertDialogContent className="border-white/10 bg-[#111a2d] text-white sm:max-w-md">
-          <AlertDialogHeader>
-            <AlertDialogTitle className="text-xl text-white">
-              Leave Interview?
-            </AlertDialogTitle>
-
-            <AlertDialogDescription className="leading-6 text-slate-400">
-              Your completed answers and current progress will be saved. You can
-              return later and continue from the next unanswered question.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-
-          <div className="rounded-lg border border-blue-500/20 bg-blue-500/10 p-4">
-            <p className="text-sm leading-5 text-blue-200">
-              Leaving will pause your interview timer. Time spent outside the
-              interview will not be counted.
-            </p>
-          </div>
-
-          <AlertDialogFooter>
-            <AlertDialogCancel
-              disabled={isLeavingInterview}
-              className="border-white/10 bg-white/5 text-slate-300 hover:bg-white/10 hover:text-white"
-            >
-              Continue Interview
-            </AlertDialogCancel>
-
-            <AlertDialogAction
-              disabled={isLeavingInterview}
-              onClick={(event) => {
-                event.preventDefault();
-
-                void handleLeaveInterview();
-              }}
-              className="bg-red-600 text-white hover:bg-red-500 focus-visible:ring-red-500"
-            >
-              {isLeavingInterview ? (
-                <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Leaving...
-                </>
-              ) : (
-                "Leave Interview"
-              )}
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
     </div>
   );
 }

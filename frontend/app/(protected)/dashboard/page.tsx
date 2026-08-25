@@ -9,31 +9,7 @@ import RecentInterviewCard from "@/components/dashboard/RecentInterviewCard";
 import StatCard from "@/components/dashboard/StatCard";
 import { getDashboard, type DashboardResponse } from "@/lib/api/dashboard";
 
-import { createClient } from "@/lib/supabase"; // remove this import before production
-
 export default function DashboardPage() {
-  //TODO: Remove the following code before production.
-  useEffect(() => {
-    if (process.env.NODE_ENV !== "development") {
-      return;
-    }
-
-    const showJwt = async () => {
-      const supabase = createClient();
-
-      const {
-        data: { session },
-      } = await supabase.auth.getSession();
-
-      if (session?.access_token) {
-        console.log("DEV JWT:", session.access_token);
-      }
-    };
-
-    void showJwt();
-  }, []);
-  //TODO: Remove the above code before production.
-
   const [dashboard, setDashboard] = useState<DashboardResponse | null>(null);
 
   const [isLoading, setIsLoading] = useState(true);

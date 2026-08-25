@@ -2,7 +2,10 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { Bell, Menu } from "lucide-react";
+
+import { Menu } from "lucide-react";
+
+import NotificationDropdown from "@/components/notifications/NotificationDropdown";
 
 import { useProfile } from "@/contexts/ProfileContext";
 import { getInitials } from "@/lib/utils/get-initials";
@@ -16,24 +19,26 @@ export default function Topbar({
   onMobileMenuClick,
   isMobileSidebarOpen,
 }: TopbarProps) {
-  const { profile,authAvatarUrl, isLoading } = useProfile();
+  const { profile, authAvatarUrl, isLoading } = useProfile();
 
   const userName = profile?.full_name || "InterviewIQ User";
+
   const email = profile?.email || "View profile";
+
   const avatarUrl = profile?.avatar_url || authAvatarUrl || null;
+
   const initials = getInitials(userName);
 
   return (
-    <header className="flex h-16 shrink-0 items-center justify-between border-b border-white/10 bg-[#050d1d]/95 px-4 backdrop-blur-xl sm:px-6">
+    <header className="relative z-50 flex h-16 shrink-0 items-center justify-between border-b border-white/10 bg-[#050d1d]/95 px-4 backdrop-blur-xl sm:px-6">
       {/* Mobile menu */}
+
       <div className="flex items-center gap-3">
         <button
           type="button"
           onClick={onMobileMenuClick}
           aria-label={
-            isMobileSidebarOpen
-              ? "Close navigation"
-              : "Open navigation"
+            isMobileSidebarOpen ? "Close navigation" : "Open navigation"
           }
           aria-expanded={isMobileSidebarOpen}
           aria-controls="dashboard-sidebar"
@@ -44,19 +49,14 @@ export default function Topbar({
       </div>
 
       {/* Right controls */}
+
       <div className="flex items-center gap-2 sm:gap-3">
         {/* Notifications */}
-        <button
-          type="button"
-          aria-label="View notifications"
-          className="relative flex h-9 w-9 items-center justify-center rounded-lg text-slate-400 transition hover:bg-white/5 hover:text-white"
-        >
-          <Bell className="h-[18px] w-[18px]" />
 
-          <span className="absolute right-2 top-2 h-1.5 w-1.5 rounded-full bg-blue-500 ring-2 ring-[#050d1d]" />
-        </button>
+        <NotificationDropdown />
 
         {/* Profile */}
+
         <Link
           href="/profile"
           className="flex items-center gap-3 rounded-lg p-1 transition hover:bg-white/5 sm:pr-3"

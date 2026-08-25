@@ -40,7 +40,7 @@ CREATE TABLE IF NOT EXISTS resumes (
 
     storage_path TEXT NOT NULL,
 
-    parsed_text TEXT,
+    sanitized_text TEXT,
 
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
 
