@@ -1,66 +1,89 @@
-import tempfile
-import os
+import base64
 
-import whisper # type: ignore[import-untyped] 
+import httpx
 
+from app.core.config import settings
 from app.core.logging import logger
-from app.exceptions.custom_exceptions import (
-    DatabaseException,
-    InterviewIQException,
-)
+from app.exceptions.custom_exceptions import DatabaseException
 
 
 class TranscriptionService:
+    """Transcribe interview audio using Cloudflare Workers AI."""
 
-    _model = whisper.load_model("base")
+    MODEL = "@cf/openai/whisper-large-v3-turbo"
 
     @staticmethod
-    def transcribe_audio(
-        audio_bytes: bytes,
-    ) -> str:
-        
-        """Transcribe audio bytes using Whisper model."""
-
-        logger.info("Starting audio transcription.")
-
-        temp_audio_file_path: str | None = None
+    def transcribe_audio(audio_bytes: bytes) -> str:
+        logger.info(
+            "Starting audio transcription with Cloudflare Workers AI."
+        )
 
         try:
-            with tempfile.NamedTemporaryFile(
-                delete=False, 
-                suffix=".webm"
-            ) as temp_audio_file:
-                
-                temp_audio_file.write(audio_bytes)
-                temp_audio_file.flush()
+            if not audio_bytes:
+                raise ValueError("Audio data is empty.")
 
-                temp_audio_file_path = temp_audio_file.name
+            encoded_audio = base64.b64encode(
+                audio_bytes
+            ).decode("utf-8")
 
-            result = TranscriptionService._model.transcribe(
-                temp_audio_file_path
+            url = (
+                "https://api.cloudflare.com/client/v4/accounts/"
+                f"{settings.CLOUDFLARE_ACCOUNT_ID}"
+                "/ai/run/"
+                f"{TranscriptionService.MODEL}"
             )
 
-            transcription = result["text"].strip()
-            
-            logger.info("Audio transcription completed successfully.")
+            headers = {
+                "Authorization": (
+                    f"Bearer {settings.CLOUDFLARE_API_TOKEN}"
+                ),
+                "Content-Type": "application/json",
+            }
 
-            return transcription
+            payload = {
+                "audio": encoded_audio,
+                "task": "transcribe",
+                "language": "en",
+                "vad_filter": True,
+            }
 
-        except InterviewIQException:
-            raise
+            response = httpx.post(
+                url,
+                headers=headers,
+                json=payload,
+                timeout=120.0,
+            )
 
-        except Exception:
-            logger.exception("Audio transcription failed.")
-            
+            response.raise_for_status()
+
+            data = response.json()
+
+            if not data.get("success"):
+                raise RuntimeError(
+                    f"Cloudflare transcription failed: "
+                    f"{data.get('errors')}"
+                )
+
+            result = data.get("result", {})
+
+            transcript = result.get("text", "").strip()
+
+            if not transcript:
+                raise RuntimeError(
+                    "Cloudflare returned an empty transcript."
+                )
+
+            logger.info(
+                "Audio transcription completed successfully."
+            )
+
+            return transcript
+
+        except Exception as exc:
+            logger.exception(
+                "Audio transcription failed."
+            )
+
             raise DatabaseException(
                 "Failed to transcribe audio."
-            )
-
-
-        finally:
-            # Clean up the temporary audio file
-            if (
-                temp_audio_file_path
-                and os.path.exists(temp_audio_file_path)
-            ):
-                os.remove(temp_audio_file_path)
+            ) from exc
