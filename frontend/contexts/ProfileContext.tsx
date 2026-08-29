@@ -11,10 +11,7 @@ import {
   type SetStateAction,
 } from "react";
 
-import {
-  getProfile,
-  type Profile,
-} from "@/lib/api/profile";
+import { getProfile, type Profile } from "@/lib/api/profile";
 import { createClient } from "@/lib/supabase";
 
 interface ProfileContextValue {
@@ -26,20 +23,15 @@ interface ProfileContextValue {
   refreshProfile: () => Promise<void>;
 }
 
-const ProfileContext = createContext<ProfileContextValue | null>(
-  null,
-);
+const ProfileContext = createContext<ProfileContextValue | null>(null);
 
 interface ProfileProviderProps {
   children: ReactNode;
 }
 
-export function ProfileProvider({
-  children,
-}: ProfileProviderProps) {
+export function ProfileProvider({ children }: ProfileProviderProps) {
   const [profile, setProfile] = useState<Profile | null>(null);
-  const [authAvatarUrl, setAuthAvatarUrl] =
-    useState<string | null>(null);
+  const [authAvatarUrl, setAuthAvatarUrl] = useState<string | null>(null);
 
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -57,27 +49,20 @@ export function ProfileProvider({
           data: { user },
           error: userError,
         },
-      ] = await Promise.all([
-        getProfile(),
-        supabase.auth.getUser(),
-      ]);
+      ] = await Promise.all([getProfile(), supabase.auth.getUser()]);
 
       if (userError) {
         throw new Error(userError.message);
       }
 
       const googleAvatarUrl =
-        user?.user_metadata?.avatar_url ||
-        user?.user_metadata?.picture ||
-        null;
+        user?.user_metadata?.avatar_url || user?.user_metadata?.picture || null;
 
       setProfile(profileData);
       setAuthAvatarUrl(googleAvatarUrl);
     } catch (error) {
       const message =
-        error instanceof Error
-          ? error.message
-          : "Failed to load profile";
+        error instanceof Error ? error.message : "Failed to load profile";
 
       setProfile(null);
       setAuthAvatarUrl(null);
@@ -90,6 +75,7 @@ export function ProfileProvider({
   }, []);
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     void refreshProfile();
   }, [refreshProfile]);
 
@@ -113,9 +99,7 @@ export function useProfile(): ProfileContextValue {
   const context = useContext(ProfileContext);
 
   if (!context) {
-    throw new Error(
-      "useProfile must be used inside ProfileProvider",
-    );
+    throw new Error("useProfile must be used inside ProfileProvider");
   }
 
   return context;

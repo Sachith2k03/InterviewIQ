@@ -75,6 +75,7 @@ export default function ResumeStep({
   }
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     void loadResumes();
   }, []);
 
@@ -425,7 +426,7 @@ export default function ResumeStep({
           {resumes.length === 0 && !showUploadForm ? (
             <div className="mt-6 rounded-xl border border-white/10 bg-[#111a2d] p-6 text-center">
               <p className="text-sm text-slate-400">
-                You don't have any active resumes yet. Upload one above to
+                You don&apos;t have any active resumes yet. Upload one above to
                 continue.
               </p>
             </div>

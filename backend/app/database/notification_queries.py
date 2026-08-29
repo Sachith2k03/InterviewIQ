@@ -1,6 +1,6 @@
 from typing import Any, cast
 
-from postgrest.types import CountMethod
+from postgrest.types import CountMethod, JSON
 
 from app.database.client import supabase
 from app.exceptions.custom_exceptions import (
@@ -20,7 +20,7 @@ def create_notification(
     """Create a notification."""
 
     try:
-        payload: dict[str, object] = {
+        payload: dict[str, JSON] = {
             "user_id": user_id,
             "type": notification_type,
             "title": title,
@@ -28,22 +28,15 @@ def create_notification(
             "is_read": False,
         }
 
-        if (
-            related_interview_id
-            is not None
-        ):
-            payload[
-                "related_interview_id"
-            ] = related_interview_id
+        if related_interview_id is not None:
+            payload["related_interview_id"] = (
+                related_interview_id
+            )
 
         response = (
             supabase
-            .table(
-                "notifications"
-            )
-            .insert(
-                payload
-            )
+            .table("notifications")
+            .insert(payload)
             .execute()
         )
 
@@ -64,7 +57,6 @@ def create_notification(
         raise DatabaseException(
             "Failed to create notification."
         ) from error
-
 
 def get_user_notifications(
     user_id: str,

@@ -1,10 +1,6 @@
 "use client";
 
-import {
-  type SyntheticEvent,
-  useEffect,
-  useState,
-} from "react";
+import { type SyntheticEvent, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -17,7 +13,7 @@ import {
   Mail,
 } from "lucide-react";
 
-import { createClient } from "@/lib/supabase"
+import { createClient } from "@/lib/supabase";
 
 import loginImage from "../../../public/images/login-image.png";
 import googleLogo from "../../../public/images/google-logo.svg";
@@ -27,9 +23,7 @@ const REMEMBERED_EMAIL_KEY = "interviewiq-remembered-email";
 export default function LoginPage() {
   const router = useRouter();
 
-  const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [rememberEmail, setRememberEmail] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
 
   const [isEmailLoading, setIsEmailLoading] = useState(false);
@@ -38,17 +32,21 @@ export default function LoginPage() {
 
   const isLoading = isEmailLoading || isGoogleLoading;
 
-  useEffect(() => {
-    const rememberedEmail = window.localStorage.getItem(
-      REMEMBERED_EMAIL_KEY,
-    );
-
-    if (rememberedEmail) {
-      setEmail(rememberedEmail);
-      setRememberEmail(true);
+  const [email, setEmail] = useState(() => {
+    if (typeof window === "undefined") {
+      return "";
     }
-  }, []);
 
+    return localStorage.getItem("rememberedEmail") ?? "";
+  });
+
+  const [rememberEmail, setRememberEmail] = useState(() => {
+    if (typeof window === "undefined") {
+      return false;
+    }
+
+    return Boolean(localStorage.getItem("rememberedEmail"));
+  });
 
   async function handleEmailLogin(
     event: SyntheticEvent<HTMLFormElement, SubmitEvent>,
@@ -83,10 +81,7 @@ export default function LoginPage() {
       }
 
       if (rememberEmail) {
-        window.localStorage.setItem(
-          REMEMBERED_EMAIL_KEY,
-          normalizedEmail,
-        );
+        window.localStorage.setItem(REMEMBERED_EMAIL_KEY, normalizedEmail);
       } else {
         window.localStorage.removeItem(REMEMBERED_EMAIL_KEY);
       }
@@ -96,9 +91,7 @@ export default function LoginPage() {
     } catch (error) {
       console.error("Email login error:", error);
 
-      setErrorMessage(
-        "Unable to sign in right now. Please try again.",
-      );
+      setErrorMessage("Unable to sign in right now. Please try again.");
     } finally {
       setIsEmailLoading(false);
     }
@@ -133,12 +126,9 @@ export default function LoginPage() {
     } catch (error) {
       console.error("Google login error:", error);
 
-      setErrorMessage(
-        "Unable to connect to Google. Please try again.",
-      );
+      setErrorMessage("Unable to connect to Google. Please try again.");
 
       setIsGoogleLoading(false);
-
     }
   }
 
@@ -203,10 +193,7 @@ export default function LoginPage() {
             )}
 
             {/* Email login form */}
-            <form
-              className="mt-5 space-y-3.5"
-              onSubmit={handleEmailLogin}
-            >
+            <form className="mt-5 space-y-3.5" onSubmit={handleEmailLogin}>
               {/* Email */}
               <div>
                 <label
@@ -282,9 +269,7 @@ export default function LoginPage() {
                     disabled={isLoading}
                     className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-500 transition hover:text-slate-300 disabled:cursor-not-allowed"
                     aria-label={
-                      showPassword
-                        ? "Hide password"
-                        : "Show password"
+                      showPassword ? "Hide password" : "Show password"
                     }
                     aria-pressed={showPassword}
                   >
@@ -308,7 +293,6 @@ export default function LoginPage() {
                   disabled={isLoading}
                   className="h-4 w-4 rounded border-white/20 bg-[#111b30] accent-blue-600 disabled:cursor-not-allowed"
                 />
-
                 Remember my email
               </label>
 
@@ -361,7 +345,6 @@ export default function LoginPage() {
                     height={20}
                     className="h-5 w-5"
                   />
-
                   Continue with Google
                 </>
               )}
@@ -427,8 +410,7 @@ export default function LoginPage() {
           </nav>
 
           <p className="order-3 text-center text-xs text-slate-600 sm:order-2 sm:justify-self-center">
-            © {new Date().getFullYear()} InterviewIQ. All rights
-            reserved.
+            © {new Date().getFullYear()} InterviewIQ. All rights reserved.
           </p>
         </div>
       </footer>

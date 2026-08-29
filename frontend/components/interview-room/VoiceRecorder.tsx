@@ -59,12 +59,6 @@ export default function VoiceRecorder({
 
   const [audioLevel, setAudioLevel] = useState(0);
 
-  useEffect(() => {
-    return () => {
-      cleanupRecording();
-    };
-  }, []);
-
   const cleanupTimer = () => {
     if (timerRef.current) {
       clearInterval(timerRef.current);
@@ -108,6 +102,39 @@ export default function VoiceRecorder({
 
     chunksRef.current = [];
   };
+
+  useEffect(() => {
+    return () => {
+      if (timerRef.current !== null) {
+        clearInterval(timerRef.current);
+        timerRef.current = null;
+      }
+
+      if (animationFrameRef.current !== null) {
+        cancelAnimationFrame(animationFrameRef.current);
+
+        animationFrameRef.current = null;
+      }
+
+      if (audioContextRef.current) {
+        void audioContextRef.current.close();
+        audioContextRef.current = null;
+      }
+
+      analyserRef.current = null;
+
+      if (streamRef.current) {
+        streamRef.current.getTracks().forEach((track) => {
+          track.stop();
+        });
+
+        streamRef.current = null;
+      }
+
+      mediaRecorderRef.current = null;
+      chunksRef.current = [];
+    };
+  }, []);
 
   const startAudioAnalysis = (stream: MediaStream) => {
     const audioContext = new AudioContext();

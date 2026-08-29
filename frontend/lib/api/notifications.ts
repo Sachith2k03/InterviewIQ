@@ -32,10 +32,6 @@ export interface NotificationDetailResponse {
   data: NotificationItem;
 }
 
-interface NotificationActionResponse {
-  success: boolean;
-  message: string;
-}
 
 async function getAccessToken(): Promise<string> {
   const supabase =

@@ -97,11 +97,13 @@ export default function NotificationDropdown() {
   }, []);
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     void loadUnreadCount();
   }, [loadUnreadCount]);
 
   useEffect(() => {
     if (isOpen) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       void loadNotifications();
     }
   }, [isOpen, loadNotifications]);

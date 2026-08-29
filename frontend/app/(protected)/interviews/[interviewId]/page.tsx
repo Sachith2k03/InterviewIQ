@@ -187,36 +187,30 @@ export default function InterviewRoomPage() {
    * Initial room load.
    */
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     void loadInterviewRoom();
   }, [loadInterviewRoom]);
 
   /*
    * Live visual timer.
    */
+  /*
+   * Live visual timer.
+   */
   useEffect(() => {
-    if (!interview) {
-      return;
-    }
-
-    if (interview.status.toLowerCase() !== "in_progress") {
-      setElapsedTime(interview.duration_seconds ?? 0);
-
+    if (
+      !interview ||
+      interview.status.toLowerCase() !== "in_progress" ||
+      !interview.last_resumed_at
+    ) {
       return;
     }
 
     const savedDuration = interview.duration_seconds ?? 0;
 
-    if (!interview.last_resumed_at) {
-      setElapsedTime(savedDuration);
-
-      return;
-    }
-
     const resumedAt = new Date(interview.last_resumed_at).getTime();
 
     if (Number.isNaN(resumedAt)) {
-      setElapsedTime(savedDuration);
-
       return;
     }
 
@@ -228,8 +222,6 @@ export default function InterviewRoomPage() {
 
       setElapsedTime(savedDuration + activeSegmentSeconds);
     };
-
-    updateTimer();
 
     const timer = window.setInterval(updateTimer, 1000);
 
@@ -488,10 +480,9 @@ export default function InterviewRoomPage() {
         totalQuestions={questions.length}
         elapsedTime={elapsedTime}
         onEnd={() => {
-          console.log("Open end interview dialog");
+          setShowLeaveConfirmation(true);
         }}
       />
-
       {/* Main interview area */}
       <div className="grid flex-1 content-center items-start gap-3 p-2.5 sm:gap-4 sm:p-4 lg:min-h-0 lg:content-stretch lg:items-stretch lg:grid-cols-[minmax(0,1fr)_280px] lg:overflow-hidden">
         {/* Question + recorder */}
@@ -546,6 +537,59 @@ export default function InterviewRoomPage() {
           </div>
         </div>
       ) : null}
+
+      {/* Leave Interview Confirmation */}
+
+      <AlertDialog
+        open={showLeaveConfirmation}
+        onOpenChange={(open) => {
+          if (isLeavingInterview) {
+            return;
+          }
+
+          setShowLeaveConfirmation(open);
+        }}
+      >
+        <AlertDialogContent className="border-white/10 bg-[#111a2d] text-white">
+          <AlertDialogHeader>
+            <AlertDialogTitle>Leave this interview?</AlertDialogTitle>
+
+            <AlertDialogDescription className="leading-6 text-slate-400">
+              Your completed answers are already saved. The interview timer will
+              be paused and you can continue from the next unanswered question
+              later.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+
+          <AlertDialogFooter>
+            <AlertDialogCancel
+              disabled={isLeavingInterview}
+              className="border-white/10 bg-white/5 text-white hover:bg-white/10"
+            >
+              Continue Interview
+            </AlertDialogCancel>
+
+            <AlertDialogAction
+              disabled={isLeavingInterview}
+              onClick={(event) => {
+                event.preventDefault();
+
+                void handleLeaveInterview();
+              }}
+              className="bg-red-600 text-white hover:bg-red-500"
+            >
+              {isLeavingInterview ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Leaving...
+                </>
+              ) : (
+                "Leave Interview"
+              )}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

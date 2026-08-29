@@ -89,7 +89,7 @@ export default function InterviewHeader({
             {totalQuestions}
           </p>
 
-          {/* End */}
+          {/* Leave */}
           <Button
             type="button"
             variant="outline"
@@ -98,9 +98,9 @@ export default function InterviewHeader({
           >
             <X className="mr-2 h-4 w-4" />
 
-            <span className="hidden sm:inline">End Interview</span>
+            <span className="hidden sm:inline">Leave Interview</span>
 
-            <span className="sm:hidden">End</span>
+            <span className="sm:hidden">Leave</span>
           </Button>
         </div>
       </div>

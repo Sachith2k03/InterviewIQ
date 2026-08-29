@@ -63,6 +63,7 @@ class ResponseService:
         )
 
         audio_storage_path: str | None = None
+        created_response_id: str | None = None
 
         try:
             interview = InterviewService.get_interview(
@@ -121,6 +122,8 @@ class ResponseService:
                 answer_duration_seconds=answer_duration_seconds,
             )
 
+            created_response_id = str(response_record["id"])
+
             evaluation = EvaluationService.evaluate_response(
                 question=question,
                 transcript=transcript,
@@ -129,7 +132,7 @@ class ResponseService:
             )
 
             response_record = db_update_analysis(
-                response_id=str(response_record["id"]),
+                response_id=created_response_id,
                 technical_score=evaluation.technical_score,
                 communication_score=evaluation.communication_score,
                 confidence_score=evaluation.confidence_score,
@@ -148,12 +151,22 @@ class ResponseService:
             )
 
         except InterviewIQException:
+            if created_response_id is not None:
+                try:
+                    db_delete_response(
+                        created_response_id
+                    )
+                except Exception:
+                    logger.exception(
+                        "Failed to rollback response "
+                        "after response submission failure."
+                    )
             if audio_storage_path is not None:
                 try:
                     AudioStorageService.delete_audio(
                         audio_storage_path
                     )
-                except InterviewIQException:
+                except Exception:
                     logger.exception(
                         "Failed to clean up uploaded audio after response failure."
                     )
