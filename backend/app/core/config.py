@@ -13,6 +13,8 @@ class Settings(BaseSettings):
 
     #AI
     GEMINI_API_KEY: str
+    CLOUDFLARE_ACCOUNT_ID: str
+    CLOUDFLARE_API_TOKEN: str
 
     model_config = SettingsConfigDict(
         env_file=".env", 
